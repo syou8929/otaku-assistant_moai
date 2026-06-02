@@ -2,6 +2,7 @@
 
 - 日付: 2026-06-02
 - 対象リポジトリ: Otaku-Assistant_MOAI (discord.js / Node.js / better-sqlite3 / Components V2)
+- 基盤アプリ名: **Armature**（各サーバーの有効構成＝有効plugin＋capability一式を **loadout** と呼ぶ）
 - ステータス: ドラフト（ユーザーレビュー前）
 
 ## 1. 背景と目的
@@ -126,6 +127,7 @@ module.exports = {
 
 - **第1段階（プラグイン単位）**: `enabledByDefault` ＋ config 上書き。削除も可。
 - **第2段階（capability 単位）**: プラグイン config 内のフラグで「層」を ON/OFF。lifecycle 等が各 capability をフラグでガード。
+- **loadout**: 第1＋第2段階で確定する「そのフォークの有効構成（有効plugin＋capabilityフラグ一式）」を **loadout** と呼ぶ。`configService` がこれを単一の真実源とし、起動時の有効集合・prune・admin-dashboard が参照する。
 - **掟**: 邪魔になりうる層は必ずフラグの後ろに置き、侵襲的なものは既定 OFF。
   - 例: anime の **engagement**（レビューロール／記念DM）は `anime.capabilities.engagement = false` 既定。`updateReviewRoles`＋祝福DMを丸ごとガード。仕事サーバーで無効。
 
@@ -166,7 +168,7 @@ src/plugins/<name>/
 ## 11. 一括削除機構（bulk removal）
 
 - 削除手順 = `src/plugins/<name>/` 削除 ＋ config 該当ブロック削除。他ファイル編集ゼロ。
-- `npm run plugins:prune` … 残す集合を渡すと不要フォルダを削除し、**依存整合を検査**（残すプラグインが消すプラグインに依存していたら拒否）、孤立 tables を一覧（`--drop-tables` で任意削除）、結果を要約。
+- `npm run plugins:prune` … 残す集合（＝そのフォークの **loadout**）を渡すと loadout 外のフォルダを削除し、**依存整合を検査**（残すプラグインが消すプラグインに依存していたら拒否）、孤立 tables を一覧（`--drop-tables` で任意削除）、結果を要約。
 - `npm run check` 拡張 … マニフェスト検証 ／ **プラグイン跨ぎの深い import 禁止**（依存は `ctx.services` 経由のみ）／ Core が特定プラグイン名を参照していないことを保証 ／ 各 blueprint.md の Removal footprint 必須項目チェック。
 
 ## 12. timeline スコープ模型（集約 / 表示 / バリア）
@@ -256,11 +258,11 @@ scripts/
 
 ## 18. 決定事項と残課題（2026-06-02 更新）
 
-1. **命名・脱ブランド — 決定: 完全リネームして「基盤アプリ」化**。
-   - ベースアプリを1つ作り、それをフォークして各サーバー特化へ作り替える運用を前提とする。
-   - リネーム対象: リポ名 / `package.json` name / systemd サービス名（`deploy/otaku-assistant.service`）/ DB ファイル名（`data/otaku-assistant.db`）/ コード内 "Otaku Assistant" 文言。
-   - 実行時のボット表示名は `botIdentity.name` 等の config 駆動にし、フォークは config で個別表示名を持てる。DB パスは `DB_PATH` env で可変化。
-   - **残: 基盤アプリの正式名称（リネーム実装時に確定）。**
+1. **命名・脱ブランド — 決定済み: 基盤アプリ名 = `Armature`**。
+   - ベースアプリ（Armature）を1つ作り、それをフォークして各サーバー特化へ作り替える運用を前提とする。
+   - **loadout**: 各フォーク／サーバーの有効構成（有効plugin＋capability一式）を指す用語。`configService`・prune・admin-dashboard が共有する中核概念。
+   - リネーム対象: リポ名 → `armature` / `package.json` name / systemd サービス名（`otaku-assistant.service` → `armature.service`）/ DB ファイル名（`otaku-assistant.db` → `armature.db`、`DB_PATH` env で可変）/ コード内 "Otaku Assistant" 文言 → `botIdentity.name`（config 駆動、フォークが個別表示名を持てる）。
+   - CLI 候補: `armature new-plugin` / `armature prune` 等へ統合（現 `npm run plugin:new` / `plugins:prune` をラップ。plan で確定）。
 2. **プラグイン粒度 — plan 段階で確定**。`intro`（profiles/reactions/dm）/ `welcome`（reactions/dm）/ `question`（resolver/watcher）を束ねるか分割するかは依存実測後に決める。`intro-profiles` は被依存のため shared 側へ切り出す前提。
 3. **config の保存先 — 決定: ローカルファイル先行、DB 化を見据えた構造**。
    - まず `config.json`＋per-plugin スキーマ検証で設計。
