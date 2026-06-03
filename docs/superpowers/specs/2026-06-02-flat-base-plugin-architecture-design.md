@@ -2,7 +2,7 @@
 
 - 日付: 2026-06-02
 - 対象リポジトリ: Otaku-Assistant_MOAI (discord.js / Node.js / better-sqlite3 / Components V2)
-- 基盤アプリ名: **Armature**（各サーバーの有効構成＝有効plugin＋capability一式を **loadout** と呼ぶ）
+- 基盤アプリ名: **Armabot**（armature＝型・骨組み ＋ bot。各サーバーの有効構成＝有効plugin＋capability一式を **loadout** と呼ぶ）
 - ステータス: ドラフト（ユーザーレビュー前）
 
 ## 1. 背景と目的
@@ -258,11 +258,11 @@ scripts/
 
 ## 18. 決定事項と残課題（2026-06-02 更新）
 
-1. **命名・脱ブランド — 決定済み: 基盤アプリ名 = `Armature`**。
-   - ベースアプリ（Armature）を1つ作り、それをフォークして各サーバー特化へ作り替える運用を前提とする。
+1. **命名・脱ブランド — 決定済み: 基盤アプリ名 = `Armabot`**（armature＝型/骨組み ＋ bot。npm・web 衝突なしを確認済）。
+   - ベースアプリ（Armabot）を1つ作り、それをフォークして各サーバー特化へ作り替える運用を前提とする。
    - **loadout**: 各フォーク／サーバーの有効構成（有効plugin＋capability一式）を指す用語。`configService`・prune・admin-dashboard が共有する中核概念。
-   - リネーム対象: リポ名 → `armature` / `package.json` name / systemd サービス名（`otaku-assistant.service` → `armature.service`）/ DB ファイル名（`otaku-assistant.db` → `armature.db`、`DB_PATH` env で可変）/ コード内 "Otaku Assistant" 文言 → `botIdentity.name`（config 駆動、フォークが個別表示名を持てる）。
-   - CLI 候補: `armature new-plugin` / `armature prune` 等へ統合（現 `npm run plugin:new` / `plugins:prune` をラップ。plan で確定）。
+   - リネーム対象: リポ名 → `armabot` / `package.json` name / systemd サービス名（`otaku-assistant.service` → `armabot.service`）/ DB ファイル名（`otaku-assistant.db` → `armabot.db`、`DB_PATH` env で可変）/ コード内 "Otaku Assistant" 文言 → `botIdentity.name`（config 駆動、フォークが個別表示名を持てる）。
+   - CLI 候補: `armabot new-plugin` / `armabot prune` 等へ統合（現 `npm run plugin:new` / `plugins:prune` をラップ。plan で確定）。
 2. **プラグイン粒度 — plan 段階で確定**。`intro`（profiles/reactions/dm）/ `welcome`（reactions/dm）/ `question`（resolver/watcher）を束ねるか分割するかは依存実測後に決める。`intro-profiles` は被依存のため shared 側へ切り出す前提。
 3. **config の保存先 — 決定: ローカルファイル先行、DB 化を見据えた構造**。
    - まず `config.json`＋per-plugin スキーマ検証で設計。
