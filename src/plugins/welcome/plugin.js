@@ -13,6 +13,8 @@ module.exports = {
   dependsOn: [],
   intents: ['Guilds', 'GuildMessages', 'GuildMessageReactions'],
   capabilities: {},
+  migrations: require('./migrations'),
+  repository: require('./repository'),
   commands: [command],
   events: {
     // 旧 events/*.js チェーンと同様、welcome 系ハンドラは後続を停止しない

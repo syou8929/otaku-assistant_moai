@@ -46,8 +46,8 @@ async function createWelcomeReactionSetup(interaction) {
   const { client } = interaction;
   const store = ensureSetupStore(client);
   const maxCount = Number(client.appConfig.welcomeReactionsMax || 5);
-  const previousCount = client.db.welcomeReactions.count(interaction.guildId);
-  client.db.welcomeReactions.clear(interaction.guildId);
+  const previousCount = client.db.welcome.count(interaction.guildId);
+  client.db.welcome.clear(interaction.guildId);
 
   client.logger.info('Welcome reaction setup DB reset', {
     guildId: interaction.guildId,
@@ -76,12 +76,12 @@ async function createWelcomeReactionSetup(interaction) {
 }
 
 function listWelcomeReactions(client, guildId) {
-  return client.db.welcomeReactions.list(guildId);
+  return client.db.welcome.list(guildId);
 }
 
 function clearWelcomeReactions(client, guildId) {
-  const count = client.db.welcomeReactions.count(guildId);
-  client.db.welcomeReactions.clear(guildId);
+  const count = client.db.welcome.count(guildId);
+  client.db.welcome.clear(guildId);
   client.logger.info('Welcome reactions cleared', {
     guildId,
     clearedCount: count
@@ -206,7 +206,7 @@ async function syncWelcomeReactionsFromSetupMessage(message, options = {}) {
       guildId,
       reactionMessageId: message.id
     });
-    return { savedCount: client.db.welcomeReactions.count(guildId) };
+    return { savedCount: client.db.welcome.count(guildId) };
   }
 
   logger.info('Welcome reaction setup sync started', {
@@ -231,10 +231,10 @@ async function syncWelcomeReactionsFromSetupMessage(message, options = {}) {
   }
 
   const selectedReactions = collectedReactions.slice(0, maxCount);
-  client.db.welcomeReactions.clear(guildId);
+  client.db.welcome.clear(guildId);
 
   selectedReactions.forEach((reaction, index) => {
-    client.db.welcomeReactions.insert({
+    client.db.welcome.insert({
       guildId,
       ...reaction,
       sortOrder: index + 1
@@ -273,7 +273,7 @@ async function applyWelcomeReactionsToMessage(message) {
     return;
   }
 
-  const reactions = client.db.welcomeReactions.list(message.guildId);
+  const reactions = client.db.welcome.list(message.guildId);
   logger.info('Welcome message detected', {
     sourceMessageId: message.id,
     channelId: message.channelId,
@@ -373,7 +373,7 @@ async function removeOutdatedBotReactions(message, savedEmojiKeySet, client, log
 async function backfillWelcomeReactions(client, guildId, limit = 100) {
   const logger = client.logger;
   const configuredChannelId = String(client.appConfig.welcomeChannelId || '');
-  const reactions = client.db.welcomeReactions.list(guildId);
+  const reactions = client.db.welcome.list(guildId);
   const savedEmojiKeySet = new Set(reactions.map((r) => r.emojiKey).filter(Boolean));
 
   logger.info('Welcome reaction backfill started', {

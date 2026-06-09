@@ -75,7 +75,7 @@ function validateManifest(manifest, folderName) {
     }
   }
 
-  for (const hookName of ['init', 'teardown']) {
+  for (const hookName of ['init', 'teardown', 'migrations', 'repository']) {
     if (manifest[hookName] !== undefined && typeof manifest[hookName] !== 'function') {
       throw new Error(`Plugin "${manifest.name}": ${hookName} must be a function`);
     }
@@ -186,6 +186,20 @@ function loadPlugins({ manifests, client, db, config, logger, services = {}, eve
   for (const manifest of manifests) {
     // api 未公開でも空オブジェクトを発行し、依存側の services[name] 参照を常に安全にする
     services[manifest.name] = manifest.api || {};
+
+    // Stage D: per-plugin migrations / repository。
+    // 有効プラグインのテーブルだけが作られ、repository は db.<name> にマウントされる。
+    manifest.migrations?.(db.sqlite);
+
+    if (manifest.repository) {
+      if (db[manifest.name] !== undefined) {
+        throw new Error(
+          `Plugin "${manifest.name}" repository would clobber existing db.${manifest.name}`
+        );
+      }
+
+      db[manifest.name] = manifest.repository(db.sqlite);
+    }
 
     const ctx = { client, db, config, logger, services };
 

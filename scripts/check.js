@@ -58,16 +58,24 @@ const {
   validateAnimeQuoteDatabase
 } = require(path.join(projectRoot, 'src', 'plugins', 'anime', 'animeQuoteMessages'));
 const commands = require(path.join(projectRoot, 'src', 'commands'));
+const { discoverPluginManifests } = require(path.join(projectRoot, 'src', 'core', 'pluginLoader'));
+const pluginManifests = discoverPluginManifests(path.join(projectRoot, 'src', 'plugins'));
+const pluginCommands = pluginManifests.flatMap((manifest) => manifest.commands || []);
+
 const tempDatabasePath = path.join(os.tmpdir(), `otaku-assistant-check-${process.pid}.db`);
 const database = createDatabase(tempDatabasePath);
+
+// per-plugin migrations / repository の SQL を一時DBで実行検証（有効/無効を問わず全件）
+for (const manifest of pluginManifests) {
+  manifest.migrations?.(database.sqlite);
+  manifest.repository?.(database.sqlite);
+}
+
 database.sqlite.close();
 fs.rmSync(tempDatabasePath, { force: true });
 fs.rmSync(`${tempDatabasePath}-shm`, { force: true });
 fs.rmSync(`${tempDatabasePath}-wal`, { force: true });
 
-const { discoverPluginManifests } = require(path.join(projectRoot, 'src', 'core', 'pluginLoader'));
-const pluginManifests = discoverPluginManifests(path.join(projectRoot, 'src', 'plugins'));
-const pluginCommands = pluginManifests.flatMap((manifest) => manifest.commands || []);
 const allCommands = [...commands.list, ...pluginCommands].filter((entry) => entry.enabled !== false);
 
 for (const command of allCommands) {
