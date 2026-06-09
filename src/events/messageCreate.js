@@ -1,6 +1,5 @@
 const { relayTweetMessage, relayGlobalHashtagMessage, handleReplyBasedGlobalHashtagRoute } = require('../modules/timelineRelay');
 const { saveMessageToArchive } = require('../shared/messageArchive');
-const { handleLlmMessage } = require('../modules/llm');
 const { saveIntroProfileFromMessage } = require('../shared/introProfiles');
 const { handleAnimeWatchedPromptReply } = require('../modules/anime');
 
@@ -39,13 +38,6 @@ const steps = [
     name: 'anime-watched-reply',
     priority: 102,
     handle: async (message) => (await handleAnimeWatchedPromptReply(message)) === true
-  },
-  {
-    name: 'llm',
-    priority: 103,
-    handle: async (message) => {
-      await handleLlmMessage(message);
-    }
   },
   {
     name: 'reply-hashtag-route',
