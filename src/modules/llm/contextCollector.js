@@ -3,7 +3,7 @@ const {
   getRecentArchivedMessagesByAuthor,
   getThreadStarterArchivedMessage
 } = require('../messageArchive');
-const { getLatestIntroProfileByUser, searchIntroProfilesScored } = require('../introProfiles');
+const { getLatestIntroProfileByUser, searchIntroProfilesScored } = require('../../shared/introProfiles');
 const { getUserMemories, formatUserMemoriesForPrompt } = require('../../shared/userMemory');
 
 function summarizeAttachments(attachments) {

@@ -2,7 +2,7 @@ const { relayTweetMessage, relayGlobalHashtagMessage, handleReplyBasedGlobalHash
 const { saveMessageToArchive } = require('../modules/messageArchive');
 const { handleLlmMessage } = require('../modules/llm');
 const { handleIntroDmMessage } = require('../modules/introDm');
-const { saveIntroProfileFromMessage } = require('../modules/introProfiles');
+const { saveIntroProfileFromMessage } = require('../shared/introProfiles');
 const { handleAnimeWatchedPromptReply } = require('../modules/anime');
 
 module.exports = {

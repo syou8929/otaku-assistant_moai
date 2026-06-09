@@ -12,7 +12,7 @@ const {
   getIntroProfileStatus,
   cleanupIntroProfiles,
   rebuildIntroProfiles
-} = require('../modules/introProfiles');
+} = require('../shared/introProfiles');
 const { backfillGuildMembers, getUsersWithoutIntroOlderThan } = require('../modules/guildMembers');
 const {
   createIntroReactionSetup,
@@ -20,7 +20,7 @@ const {
   clearIntroReactions,
   backfillIntroReactions,
   formatSavedEmoji: formatSavedIntroEmoji
-} = require('../modules/introReactions');
+} = require('../plugins/intro/introReactions');
 
 module.exports = {
   data: new SlashCommandBuilder()

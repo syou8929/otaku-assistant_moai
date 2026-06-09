@@ -1,6 +1,6 @@
 const { updateTweetTimelineCard, handleRouteAddedOnMessageUpdate } = require('../modules/timelineRelay');
 const { saveMessageToArchive } = require('../modules/messageArchive');
-const { saveIntroProfileFromMessage } = require('../modules/introProfiles');
+const { saveIntroProfileFromMessage } = require('../shared/introProfiles');
 
 module.exports = {
   async execute(oldMessage, newMessage) {

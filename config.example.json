@@ -3,7 +3,8 @@
     "welcome": { "enabled": true },
     "entrance-guide": { "enabled": true },
     "vc-profile": { "enabled": true },
-    "question": { "enabled": true }
+    "question": { "enabled": true },
+    "intro": { "enabled": true }
   },
   "entranceChannelId": "YOUR_ENTRANCE_CHANNEL_ID",
   "timelineChannelId": "YOUR_TIMELINE_CHANNEL_ID",
