@@ -183,6 +183,7 @@ function loadPlugins({ manifests, client, db, config, logger, services = {}, eve
       eventRouter.register(eventName, {
         name: `${manifest.name}:${eventName}`,
         priority: entry.priority,
+        once: entry.once,
         handle: (...args) => entry.handle(...args, ctx)
       });
     }

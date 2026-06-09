@@ -1,8 +1,3 @@
-const {
-  initializeVoiceProfileMappings,
-  rebuildVoiceProfileState,
-  startVoiceProfileReconciliation
-} = require('../modules/vcProfile');
 const pkg = require('../../package.json');
 const { getBotHealth } = require('../modules/ops/health');
 const { notifyOpsChannel } = require('../modules/ops/notify');
@@ -13,10 +8,9 @@ const { getAnnictAccessToken } = require('../modules/anime/annictClient');
 module.exports = {
   async execute(client) {
     client.db.deletableMessages.deleteExpired();
-    await initializeVoiceProfileMappings(client);
-    await rebuildVoiceProfileState(client, { reason: 'ready_resync' });
-    startVoiceProfileReconciliation(client);
 
+    // VC プロフィール初期化は vc-profile プラグイン（clientReady@50）が先に実行済み。
+    // 以降の voiceProfileCategoryMap 読取は未ロード時 0 として扱われる。
     const health = getBotHealth(client);
     const globalHashtagRoutes = Object.entries(client.appConfig.globalHashtagRoutes || {});
 

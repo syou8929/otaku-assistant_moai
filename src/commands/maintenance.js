@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { isAdministrator } = require('../utils/permissions');
-const { initializeVoiceProfileMappings, rebuildVoiceProfileState } = require('../modules/vcProfile');
+// 過渡的 deep import: maintenance 分解（Stage E〜F）で plugin 寄与型サブコマンドへ移行する
+const { initializeVoiceProfileMappings, rebuildVoiceProfileState } = require('../plugins/vc-profile/vcProfile');
 // 過渡的 deep import: maintenance 分解（Stage E〜F）で plugin 寄与型サブコマンドへ移行する
 const { postEntranceGuide } = require('../plugins/entrance-guide/guide');
 const { backfillQuestionTags } = require('../modules/questionResolver/backfillQuestionTags');

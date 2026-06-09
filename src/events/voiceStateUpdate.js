@@ -1,20 +1,8 @@
-const { handleVoiceStateUpdate } = require('../modules/vcProfile');
 const { updateGuildMemberVcJoined, upsertGuildMember } = require('../modules/guildMembers');
 const { maybeSendVcNoIntroDm } = require('../modules/introDm');
 
 module.exports = {
   async execute(oldState, newState) {
-    try {
-      await handleVoiceStateUpdate(oldState, newState);
-    } catch (error) {
-      newState.client.logger.error('Failed to handle voiceStateUpdate', {
-        userId: newState.id,
-        oldChannelId: oldState.channelId,
-        newChannelId: newState.channelId,
-        error: error.message
-      });
-    }
-
     const member = newState.member || oldState.member || null;
     if (!member?.guild || !newState.channelId || oldState.channelId) {
       return;
