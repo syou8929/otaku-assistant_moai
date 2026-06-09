@@ -6,8 +6,8 @@ const { initializeVoiceProfileMappings, rebuildVoiceProfileState } = require('..
 const { postEntranceGuide } = require('../plugins/entrance-guide/guide');
 const { backfillQuestionTags } = require('../plugins/question/backfillQuestionTags');
 const { applyQuestionStatusTag } = require('../plugins/question/threadTags');
-const { getBotHealth } = require('../modules/ops/health');
-const { notifyOpsChannel } = require('../modules/ops/notify');
+const { getBotHealth } = require('../core/ops/health');
+const { notifyOpsChannel } = require('../core/ops/notify');
 const { getUserMemories, deleteAllUserMemories } = require('../shared/userMemory');
 
 function buildStatusLines(interaction) {

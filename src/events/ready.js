@@ -1,6 +1,6 @@
 const pkg = require('../../package.json');
-const { getBotHealth } = require('../modules/ops/health');
-const { notifyOpsChannel } = require('../modules/ops/notify');
+const { getBotHealth } = require('../core/ops/health');
+const { notifyOpsChannel } = require('../core/ops/notify');
 
 module.exports = {
   async execute(client) {

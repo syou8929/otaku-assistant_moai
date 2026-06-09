@@ -5,7 +5,7 @@ const { createBotClient } = require('./client');
 const { loadConfig } = require('./config/loadConfig');
 const { createDatabase } = require('./db/database');
 const { createLogger } = require('./services/logger');
-const { notifyOpsChannel } = require('./modules/ops/notify');
+const { notifyOpsChannel } = require('./core/ops/notify');
 const { createEventRouter } = require('./core/eventRouter');
 const {
   discoverPluginManifests,
