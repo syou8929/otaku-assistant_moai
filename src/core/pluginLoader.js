@@ -42,6 +42,10 @@ function validateManifest(manifest, folderName) {
     }
   }
 
+  if (manifest.api !== undefined && (typeof manifest.api !== 'object' || Array.isArray(manifest.api))) {
+    throw new Error(`Plugin "${manifest.name}": api must be an object (public surface for dependents)`);
+  }
+
   if (manifest.events !== undefined) {
     if (typeof manifest.events !== 'object' || Array.isArray(manifest.events)) {
       throw new Error(`Plugin "${manifest.name}": events must be an object keyed by event name`);
@@ -156,6 +160,8 @@ function sortByDependencies(enabledManifests) {
  * 有効プラグインを結線する。
  * - commands を client.commands へ登録（既存 interactionCreate の経路に乗る）
  * - events を eventRouter へ priority つきで登録（ctx を末尾引数で渡す）
+ * - manifest.api を services[name] として公開（manifests はトポロジカル順なので、
+ *   dependsOn 先の API は自分の init(ctx) 時点で必ず ctx.services に存在する）
  * - init(ctx) を依存順に実行
  * 返り値の teardown() は逆順で teardown(ctx) を呼ぶ。
  */
@@ -163,6 +169,10 @@ function loadPlugins({ manifests, client, db, config, logger, services = {}, eve
   const loadedEntries = [];
 
   for (const manifest of manifests) {
+    if (manifest.api) {
+      services[manifest.name] = manifest.api;
+    }
+
     const ctx = { client, db, config, logger, services };
 
     for (const command of manifest.commands || []) {
