@@ -1,4 +1,4 @@
-const { updateGuildMemberVcJoined, upsertGuildMember } = require('../modules/guildMembers');
+const { updateGuildMemberVcJoined, upsertGuildMember } = require('../shared/guildMembers');
 
 module.exports = {
   async execute(oldState, newState) {

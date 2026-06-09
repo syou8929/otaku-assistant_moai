@@ -2,7 +2,7 @@ const {
   getRecentArchivedMessages,
   getRecentArchivedMessagesByAuthor,
   getThreadStarterArchivedMessage
-} = require('../messageArchive');
+} = require('../../shared/messageArchive');
 const { getLatestIntroProfileByUser, searchIntroProfilesScored } = require('../../shared/introProfiles');
 const { getUserMemories, formatUserMemoriesForPrompt } = require('../../shared/userMemory');
 

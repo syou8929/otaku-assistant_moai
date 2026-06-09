@@ -1,4 +1,4 @@
-const { upsertGuildMember } = require('../modules/guildMembers');
+const { upsertGuildMember } = require('../shared/guildMembers');
 
 module.exports = {
   async execute(member) {

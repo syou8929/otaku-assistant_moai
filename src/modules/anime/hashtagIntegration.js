@@ -6,7 +6,7 @@ const {
   linkAnimeHashtagSourceToEntry
 } = require('./index');
 const { buildAnimeLinks, getPreferredAnimeDisplayTitle } = require('./buildAnimeMessages');
-const { registerDeletableMessage } = require('../deletableMessages');
+const { registerDeletableMessage } = require('../../shared/deletableMessages');
 const {
   analyzeResolvedWorkMatch,
   canonicalTitle,

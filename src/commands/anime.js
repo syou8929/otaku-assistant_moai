@@ -16,7 +16,7 @@ const {
   getProviderTokenMissingMessage
 } = require('../modules/anime');
 const { buildAnimeLinks, getPreferredAnimeDisplayTitle } = require('../modules/anime/buildAnimeMessages');
-const { registerDeletableMessage } = require('../modules/deletableMessages');
+const { registerDeletableMessage } = require('../shared/deletableMessages');
 const {
   buildCandidateLines,
   ensurePostSelectionStore,

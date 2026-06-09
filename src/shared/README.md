@@ -17,10 +17,13 @@
 
 | ファイル | 由来 | 利用元 |
 |---|---|---|
-| `llmClient.js` | `modules/llm/ollamaClient.js` から昇格 | llm（会話機能）/ introDm |
+| `llmClient.js` | `modules/llm/ollamaClient.js` から昇格 | llm（会話機能）/ intro |
 | `userMemory.js` | `modules/userMemory/` から昇格 | llm / maintenance コマンド |
+| `introProfiles.js` | `modules/introProfiles/` から昇格（保存フックつき） | intro / llm / events |
+| `guildMembers.js` | `modules/guildMembers/` から昇格 | intro / introProfiles / events |
+| `messageArchive/` | `modules/messageArchive/` から昇格 | llm / timelineRelay / events |
+| `deletableMessages.js` | `modules/deletableMessages/` から昇格 | anime / events |
+| `discordLinks.js` | `services/discordLinks.js` から昇格 | entrance-guide / timelineRelay / anime |
 
-## 今後の昇格予定（dependency-map.md §2）
-
-messageArchive / guildMembers / deletableMessages / introProfiles（読取API）/ discordLinks
-— それぞれ対応するプラグイン移送の際に昇格する。
+これで dependency-map.md §2 の shared 昇格は完了。残る `src/modules/` は
+timelineRelay / anime / llm / ops（ops は core 行き予定）のみ。

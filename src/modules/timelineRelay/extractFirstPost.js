@@ -1,5 +1,5 @@
 const { setTimeout: sleep } = require('node:timers/promises');
-const { getMessageJumpUrl } = require('../../services/discordLinks');
+const { getMessageJumpUrl } = require('../../shared/discordLinks');
 const {
   findImageAttachments,
   findFirstImageAttachment,

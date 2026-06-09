@@ -10,7 +10,7 @@ const {
   TextDisplayBuilder,
   ThumbnailBuilder
 } = require('discord.js');
-const { getChannelJumpUrl, getMessageJumpUrl } = require('../../services/discordLinks');
+const { getChannelJumpUrl, getMessageJumpUrl } = require('../../shared/discordLinks');
 const { isUsableAnimeMainImageUrl } = require('./imagePolicy');
 
 function createContainer(accentColor = 0x8b5cf6) {

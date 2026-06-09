@@ -1,5 +1,5 @@
 const { relayTweetMessage, relayGlobalHashtagMessage, handleReplyBasedGlobalHashtagRoute } = require('../modules/timelineRelay');
-const { saveMessageToArchive } = require('../modules/messageArchive');
+const { saveMessageToArchive } = require('../shared/messageArchive');
 const { handleLlmMessage } = require('../modules/llm');
 const { saveIntroProfileFromMessage } = require('../shared/introProfiles');
 const { handleAnimeWatchedPromptReply } = require('../modules/anime');

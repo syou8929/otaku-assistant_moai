@@ -475,8 +475,7 @@ function getIntroProfileStatus(client, guildId) {
 }
 
 async function getMembersWithoutIntroOlderThan(guild, hours, client) {
-  // 過渡的: guildMembers の shared 昇格（dependency-map.md §2）でパス更新
-  return require('../modules/guildMembers').getUsersWithoutIntroOlderThan(client, guild.id, hours, 20);
+  return require('./guildMembers').getUsersWithoutIntroOlderThan(client, guild.id, hours, 20);
 }
 
 async function cleanupIntroProfiles(client, guildId, { dryRun = true, limit = 1000 } = {}) {

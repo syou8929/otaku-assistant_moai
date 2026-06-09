@@ -1,5 +1,5 @@
 const { handleAnimeReactionAdd } = require('../modules/anime');
-const { handleDeletableMessageReaction } = require('../modules/deletableMessages');
+const { handleDeletableMessageReaction } = require('../shared/deletableMessages');
 
 module.exports = {
   async execute(reaction, user) {

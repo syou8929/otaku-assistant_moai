@@ -8,7 +8,7 @@ const {
   SeparatorSpacingSize,
   TextDisplayBuilder
 } = require('discord.js');
-const { getChannelJumpUrl } = require('../../services/discordLinks');
+const { getChannelJumpUrl } = require('../../shared/discordLinks');
 const { DEFAULT_GUIDE_SOURCE_PATH, loadEntranceGuideCards } = require('./content');
 
 const STATIC_CHANNELS = {

@@ -13,7 +13,7 @@ const {
   cleanupIntroProfiles,
   rebuildIntroProfiles
 } = require('../../shared/introProfiles');
-const { backfillGuildMembers, getUsersWithoutIntroOlderThan } = require('../../modules/guildMembers');
+const { backfillGuildMembers, getUsersWithoutIntroOlderThan } = require('../../shared/guildMembers');
 const {
   createIntroReactionSetup,
   listIntroReactions,

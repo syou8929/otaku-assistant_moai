@@ -25,7 +25,7 @@ const {
   selectPreferredAnimeImageCandidates
 } = require('./imagePolicy');
 const { normalizeAnimeSearchQuery, buildAnimeSearchQueries } = require('./titleAliases');
-const { registerDeletableMessage } = require('../deletableMessages');
+const { registerDeletableMessage } = require('../../shared/deletableMessages');
 const { extractPlainMessagePost } = require('../timelineRelay/extractFirstPost');
 const { buildTimelineMessage } = require('../timelineRelay/buildTimelineMessage');
 const { resolveTwitterMedia } = require('../timelineRelay/twitterMediaResolver');

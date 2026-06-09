@@ -1,6 +1,5 @@
 const { requestOllamaChat } = require('../../shared/llmClient');
-// 過渡的: guildMembers の shared 昇格（dependency-map.md §2）でパス更新
-const { hasUserIntro } = require('../../modules/guildMembers');
+const { hasUserIntro } = require('../../shared/guildMembers');
 
 const PROMPT_TYPES = {
   VC_NO_INTRO: 'vc_no_intro',
