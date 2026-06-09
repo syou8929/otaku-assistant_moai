@@ -1,4 +1,4 @@
-const { requestOllamaChat } = require('../ollamaClient');
+const { requestOllamaChat } = require('../../../shared/llmClient');
 const { splitResponseIntoChunks } = require('../responseFormatter');
 
 const MESSAGE_LINK_PATTERN = /https?:\/\/(?:discord(?:app)?\.com)\/channels\/(\d+)\/(\d+)\/(\d+)/iu;

@@ -1,6 +1,6 @@
 const { collectContextForMessage } = require('./contextCollector');
 const { buildOllamaMessages, buildCasualOllamaMessages } = require('./promptBuilder');
-const { requestOllamaChat } = require('./ollamaClient');
+const { requestOllamaChat } = require('../../shared/llmClient');
 const { splitResponseIntoChunks } = require('./responseFormatter');
 const { handleMessageLinkReplyAction } = require('./actions/messageLinkReply');
 const {
@@ -9,7 +9,7 @@ const {
   extractMemoryText,
   saveUserMemory,
   deleteAllUserMemories
-} = require('../userMemory');
+} = require('../../shared/userMemory');
 
 const CASUAL_INHIBIT_PATTERN = /(まとめて|要約して|整理して|教えて|について|調べて|スレッドを|チャンネルを|どうすれ|どうすれば|なんで|なぜ|どうして|どんな|どうやっ|質問|どこ)/u;
 

@@ -4,7 +4,7 @@ const {
   getThreadStarterArchivedMessage
 } = require('../messageArchive');
 const { getLatestIntroProfileByUser, searchIntroProfilesScored } = require('../introProfiles');
-const { getUserMemories, formatUserMemoriesForPrompt } = require('../userMemory');
+const { getUserMemories, formatUserMemoriesForPrompt } = require('../../shared/userMemory');
 
 function summarizeAttachments(attachments) {
   if (!Array.isArray(attachments) || !attachments.length) {

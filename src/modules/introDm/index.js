@@ -1,4 +1,4 @@
-const { requestOllamaChat } = require('../llm/ollamaClient');
+const { requestOllamaChat } = require('../../shared/llmClient');
 const { hasUserIntro } = require('../guildMembers');
 
 const PROMPT_TYPES = {

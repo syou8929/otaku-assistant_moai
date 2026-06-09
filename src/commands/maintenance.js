@@ -8,7 +8,7 @@ const { backfillQuestionTags } = require('../plugins/question/backfillQuestionTa
 const { applyQuestionStatusTag } = require('../plugins/question/threadTags');
 const { getBotHealth } = require('../modules/ops/health');
 const { notifyOpsChannel } = require('../modules/ops/notify');
-const { getUserMemories, deleteAllUserMemories } = require('../modules/userMemory');
+const { getUserMemories, deleteAllUserMemories } = require('../shared/userMemory');
 
 function buildStatusLines(interaction) {
   const { client } = interaction;
