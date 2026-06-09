@@ -10,7 +10,7 @@ introDm（参加者への自己紹介促し DM・キュー処理・DM 返信対�
 |---|---|
 | フォルダ | `src/plugins/intro/` |
 | config キー | `introReactionsMax` / `plugins.intro`（第2便で `introDm.*` も。注: 現状 `loadConfig.js` 共通スキーマに残置。Stage F で本プラグインへ移動） |
-| DB テーブル | `intro_reactions`（注: Stage D で本プラグインへ移動。`intro_profiles` は shared 側の所有） |
+| DB テーブル | `intro_reactions`（**本プラグイン所有**: `migrations.js`＋`repository.js`＝`db.intro`。`intro_profiles` は shared 側の所有、introDm 系テーブルは中央残置＝Stage D 続き） |
 | intents | Guilds / GuildMessages / GuildMessageReactions（他プラグインと共有） |
 | client 状態 | `client.activeIntroReactionSetups` |
 | フック | `shared/introProfiles.registerIntroMessageSavedHandler`（init で登録。未登録なら保存後の付与は no-op） |
