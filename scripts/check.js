@@ -47,11 +47,22 @@ fs.rmSync(tempDatabasePath, { force: true });
 fs.rmSync(`${tempDatabasePath}-shm`, { force: true });
 fs.rmSync(`${tempDatabasePath}-wal`, { force: true });
 
-for (const command of commands.list.filter((entry) => entry.enabled !== false)) {
+const { discoverPluginManifests } = require(path.join(projectRoot, 'src', 'core', 'pluginLoader'));
+const pluginManifests = discoverPluginManifests(path.join(projectRoot, 'src', 'plugins'));
+const pluginCommands = pluginManifests.flatMap((manifest) => manifest.commands || []);
+const allCommands = [...commands.list, ...pluginCommands].filter((entry) => entry.enabled !== false);
+
+for (const command of allCommands) {
   const optionCount = Array.isArray(command?.data?.options) ? command.data.options.length : 0;
   if (optionCount > 25) {
     throw new Error(`Command ${command.data?.name || 'unknown'} has too many top-level options: ${optionCount}`);
   }
+}
+
+const commandNames = allCommands.map((command) => command.data.name);
+const duplicateNames = commandNames.filter((name, index) => commandNames.indexOf(name) !== index);
+if (duplicateNames.length > 0) {
+  throw new Error(`Duplicate command names across core and plugins: ${duplicateNames.join(', ')}`);
 }
 
 const configExample = JSON.parse(fs.readFileSync(path.join(projectRoot, 'config.example.json'), 'utf8'));
@@ -64,3 +75,4 @@ if (!animeQuoteValidation.ok) {
 }
 
 console.log(`Checked ${files.length} JavaScript files.`);
+console.log(`Validated ${pluginManifests.length} plugin manifest(s): ${pluginManifests.map((manifest) => manifest.name).join(', ') || '(none)'}`);

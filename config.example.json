@@ -1,4 +1,7 @@
 {
+  "plugins": {
+    "welcome": { "enabled": true }
+  },
   "entranceChannelId": "YOUR_ENTRANCE_CHANNEL_ID",
   "timelineChannelId": "YOUR_TIMELINE_CHANNEL_ID",
   "introChannelId": "YOUR_INTRO_CHANNEL_ID",

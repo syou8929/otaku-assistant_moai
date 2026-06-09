@@ -1,12 +1,12 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { isAdministrator } = require('../utils/permissions');
+const { isAdministrator } = require('../../utils/permissions');
 const {
   createWelcomeReactionSetup,
   listWelcomeReactions,
   clearWelcomeReactions,
   backfillWelcomeReactions,
   formatSavedEmoji
-} = require('../modules/welcomeReactions');
+} = require('./welcomeReactions');
 
 module.exports = {
   data: new SlashCommandBuilder()

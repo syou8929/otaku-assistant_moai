@@ -1,5 +1,4 @@
 const { relayTweetMessage, relayGlobalHashtagMessage, handleReplyBasedGlobalHashtagRoute } = require('../modules/timelineRelay');
-const { applyWelcomeReactionsToMessage } = require('../modules/welcomeReactions');
 const { saveMessageToArchive } = require('../modules/messageArchive');
 const { handleLlmMessage } = require('../modules/llm');
 const { handleIntroDmMessage } = require('../modules/introDm');
@@ -37,16 +36,6 @@ module.exports = {
       await saveIntroProfileFromMessage(client, message);
     } catch (error) {
       client.logger.error('Intro profile save failed', {
-        messageId: message.id,
-        channelId: message.channelId,
-        error: error.message
-      });
-    }
-
-    try {
-      await applyWelcomeReactionsToMessage(message);
-    } catch (error) {
-      client.logger.error('Failed to apply welcome reactions', {
         messageId: message.id,
         channelId: message.channelId,
         error: error.message

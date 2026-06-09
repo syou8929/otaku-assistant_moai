@@ -1,4 +1,3 @@
-const { handleWelcomeReactionSetup } = require('../modules/welcomeReactions');
 const { handleIntroReactionSetup } = require('../modules/introReactions');
 const { handleAnimeReactionAdd } = require('../modules/anime');
 const { handleDeletableMessageReaction } = require('../modules/deletableMessages');
@@ -14,17 +13,6 @@ module.exports = {
       }
     } catch (error) {
       client?.logger?.error?.('Failed to handle deletable message reaction', {
-        messageId: reaction.message?.id || null,
-        channelId: reaction.message?.channelId || null,
-        userId: user?.id || null,
-        error: error.message
-      });
-    }
-
-    try {
-      await handleWelcomeReactionSetup(reaction, user);
-    } catch (error) {
-      client?.logger?.error?.('Failed to handle messageReactionAdd', {
         messageId: reaction.message?.id || null,
         channelId: reaction.message?.channelId || null,
         userId: user?.id || null,
