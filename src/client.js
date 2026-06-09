@@ -13,7 +13,26 @@ const voiceStateUpdateEvent = require('./events/voiceStateUpdate');
 const guildMemberAddEvent = require('./events/guildMemberAdd');
 const guildMemberRemoveEvent = require('./events/guildMemberRemove');
 
-function createBotClient({ appConfig, database, logger }) {
+// 旧 events/*.js チェーンの dispatch 優先度。プラグインは <100 で前、
+// >100 で後ろに割り込める。チェーン分解（Stage E）と共に消える定数。
+const LEGACY_PRIORITY = 100;
+
+const LEGACY_EVENTS = [
+  { event: 'clientReady', handler: readyEvent, once: true },
+  { event: 'threadCreate', handler: threadCreateEvent },
+  { event: 'messageCreate', handler: messageCreateEvent },
+  { event: 'messageUpdate', handler: messageUpdateEvent },
+  { event: 'messageDelete', handler: messageDeleteEvent },
+  { event: 'messageBulkDelete', handler: messageBulkDeleteEvent },
+  { event: 'messageReactionAdd', handler: messageReactionAddEvent },
+  { event: 'messageReactionRemove', handler: messageReactionRemoveEvent },
+  { event: 'interactionCreate', handler: interactionCreateEvent },
+  { event: 'voiceStateUpdate', handler: voiceStateUpdateEvent },
+  { event: 'guildMemberAdd', handler: guildMemberAddEvent },
+  { event: 'guildMemberRemove', handler: guildMemberRemoveEvent }
+];
+
+function createBotClient({ appConfig, database, logger, eventRouter }) {
   const client = new Client({
     intents: [
       GatewayIntentBits.Guilds,
@@ -53,18 +72,14 @@ function createBotClient({ appConfig, database, logger }) {
   client.introDmQueueInterval = null;
   client.voiceProfileReconcileInterval = null;
 
-  client.once('clientReady', (...args) => readyEvent.execute(...args));
-  client.on('threadCreate', (...args) => threadCreateEvent.execute(...args));
-  client.on('messageCreate', (...args) => messageCreateEvent.execute(...args));
-  client.on('messageUpdate', (...args) => messageUpdateEvent.execute(...args));
-  client.on('messageDelete', (...args) => messageDeleteEvent.execute(...args));
-  client.on('messageBulkDelete', (...args) => messageBulkDeleteEvent.execute(...args));
-  client.on('messageReactionAdd', (...args) => messageReactionAddEvent.execute(...args));
-  client.on('messageReactionRemove', (...args) => messageReactionRemoveEvent.execute(...args));
-  client.on('interactionCreate', (...args) => interactionCreateEvent.execute(...args));
-  client.on('voiceStateUpdate', (...args) => voiceStateUpdateEvent.execute(...args));
-  client.on('guildMemberAdd', (...args) => guildMemberAddEvent.execute(...args));
-  client.on('guildMemberRemove', (...args) => guildMemberRemoveEvent.execute(...args));
+  for (const { event, handler, once } of LEGACY_EVENTS) {
+    eventRouter.register(event, {
+      name: `legacy:${event}`,
+      priority: LEGACY_PRIORITY,
+      once,
+      handle: (...args) => handler.execute(...args)
+    });
+  }
 
   return client;
 }

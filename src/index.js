@@ -20,6 +20,33 @@ let activeClient = null;
 let activePluginRuntime = null;
 let shuttingDown = false;
 
+// ハンドラ失敗の ops 通知は handler 単位で 10 分に 1 回へ抑制する
+//（例: DB 障害時に messageCreate のたび通知が連射されるのを防ぐ）
+const OPS_HANDLER_ERROR_THROTTLE_MS = 10 * 60 * 1000;
+const opsHandlerErrorNotifiedAt = new Map();
+
+function notifyHandlerError(error, { event, handler }) {
+  if (!activeClient?.isReady?.()) {
+    return;
+  }
+
+  const throttleKey = `${event}:${handler}`;
+  const now = Date.now();
+  const lastNotifiedAt = opsHandlerErrorNotifiedAt.get(throttleKey) || 0;
+
+  if (now - lastNotifiedAt < OPS_HANDLER_ERROR_THROTTLE_MS) {
+    return;
+  }
+
+  opsHandlerErrorNotifiedAt.set(throttleKey, now);
+  void notifyOpsChannel(activeClient, [
+    '⚠️ Event handler failed',
+    `- Event: ${event}`,
+    `- Handler: ${handler}`,
+    `- Error: ${error?.message || String(error)}`
+  ].join('\n')).catch(() => null);
+}
+
 async function notifyFatal(title, error) {
   if (!activeClient?.isReady?.()) {
     return;
@@ -67,14 +94,19 @@ async function main() {
   const appConfig = loadConfig(configPath);
   const database = createDatabase(path.resolve(process.cwd(), 'data', 'otaku-assistant.db'));
 
+  const eventRouter = createEventRouter({
+    logger: bootstrapLogger,
+    onError: notifyHandlerError
+  });
+
   const client = createBotClient({
     appConfig,
     database,
-    logger: bootstrapLogger
+    logger: bootstrapLogger,
+    eventRouter
   });
   activeClient = client;
 
-  const eventRouter = createEventRouter({ logger: bootstrapLogger });
   const manifests = discoverPluginManifests(path.resolve(__dirname, 'plugins'));
   const enabledManifests = sortByDependencies(
     resolveEnabledManifests(manifests, appConfig.plugins)
