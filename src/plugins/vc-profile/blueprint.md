@@ -12,7 +12,7 @@ VC 在室者のプロフィールカードを対応テキストチャンネル�
 | DB テーブル | なし（プロフィール本文は intro 投稿から都度取得） |
 | intents | Guilds / GuildMessages / **GuildVoiceStates**（このプラグイン以外に利用者なし → 削除時に intent 表面が縮む） |
 | client 状態 | `client.voiceProfileCategoryMap`（health.js が `?? 0` で安全に読む）/ `client.voiceProfileReconcileInterval`（teardown で解除） |
-| 依存元（過渡的） | `src/commands/maintenance.js` の vc 系サブコマンドが deep import（Stage E〜F で解消）/ `src/events/ready.js` と `src/modules/ops/health.js` が `voiceProfileCategoryMap` を読取（未ロード時は 0 と表示） |
+| 依存元（過渡的） | `src/commands/maintenance.js` の vc 系サブコマンドが deep import（Stage E〜F で解消）/ `src/events/ready.js` と `src/core/ops/health.js` が `voiceProfileCategoryMap` を読取（未ロード時は 0 と表示） |
 
 ## capability 一覧
 

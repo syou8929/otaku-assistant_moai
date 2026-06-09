@@ -13,7 +13,7 @@
 | intents | Guilds / GuildMessages / GuildMessageReactions / MessageContent（共有） |
 | env | `ANNICT_ACCESS_TOKEN`（annict.accessTokenEnv で可変） |
 | フック | `timelineRelay/hooks.registerHashtagPostHandler`（init で登録。未登録なら relay 側は no-op） |
-| 依存（過渡的） | `modules/timelineRelay` のメディア系ユーティリティ 5 ファイルを deep import（Stage C で dependsOn + ctx.services へ） |
+| 依存（過渡的） | `plugins/timeline-relay` のメディア系ユーティリティ 5 ファイルを cross-plugin deep import（`dependsOn` は宣言済み。Stage D/F で shared/media 昇格か ctx.services 経由化） |
 
 ## capability 整理（Stage C で フラグ化予定）
 

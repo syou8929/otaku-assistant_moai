@@ -25,5 +25,5 @@
 | `deletableMessages.js` | `modules/deletableMessages/` から昇格 | anime / events |
 | `discordLinks.js` | `services/discordLinks.js` から昇格 | entrance-guide / timelineRelay / anime |
 
-これで dependency-map.md §2 の shared 昇格は完了。残る `src/modules/` は
-timelineRelay / anime / llm / ops（ops は core 行き予定）のみ。
+これで dependency-map.md §2 の shared 昇格は完了。`src/modules/` は全機能の
+プラグイン化（plugins/）と ops の core 移動を経て消滅した。

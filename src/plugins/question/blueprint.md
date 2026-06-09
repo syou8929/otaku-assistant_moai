@@ -17,8 +17,8 @@
 
 ## 依存（過渡的）
 
-- `resolver.js` → `modules/timelineRelay.updateQuestionTimelineCard`（解決時のカード更新）。
-  timeline-relay プラグイン化（Stage C）で `dependsOn: ['timeline-relay']` ＋ `ctx.services` 経由へ。
+- `resolver.js` → `../timeline-relay`（plugins/timeline-relay）の `updateQuestionTimelineCard` を
+  cross-plugin deep import（`dependsOn` は宣言済み）。Stage D/F で `ctx.services` 経由へ。
 - timeline-relay 側の `forumType === 'question'` 分岐（guide message 投稿・`db.questions` 書込）は
   relay 本体に残っている。Stage C で capability として整理する。
 
