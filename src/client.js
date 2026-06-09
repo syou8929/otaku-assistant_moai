@@ -20,7 +20,6 @@ const LEGACY_PRIORITY = 100;
 const LEGACY_EVENTS = [
   { event: 'clientReady', handler: readyEvent, once: true },
   { event: 'threadCreate', handler: threadCreateEvent },
-  { event: 'messageCreate', handler: messageCreateEvent },
   { event: 'messageUpdate', handler: messageUpdateEvent },
   { event: 'messageDelete', handler: messageDeleteEvent },
   // discord.js v14 の実 emit 名は messageDeleteBulk（Events.MessageBulkDelete）。
@@ -80,6 +79,16 @@ function createBotClient({ appConfig, database, logger, eventRouter }) {
       priority: LEGACY_PRIORITY,
       once,
       handle: (...args) => handler.execute(...args)
+    });
+  }
+
+  // messageCreate はステップ分解済み（events/messageCreate.js の steps）。
+  // priority 100〜106 が旧チェーンの並び。詳細は同ファイルの docblock を参照。
+  for (const step of messageCreateEvent.steps) {
+    eventRouter.register('messageCreate', {
+      name: `legacy:messageCreate:${step.name}`,
+      priority: step.priority,
+      handle: step.handle
     });
   }
 
