@@ -11,7 +11,8 @@
     "check": "node scripts/check.js",
     "backfill-question-tags": "node scripts/backfillQuestionTags.js",
     "post-entrance-guide": "node scripts/postEntranceGuide.js",
-    "plugin:new": "node scripts/pluginNew.js"
+    "plugin:new": "node scripts/pluginNew.js",
+    "plugins:prune": "node scripts/prunePlugins.js"
   },
   "keywords": [
     "discord",
