@@ -7,7 +7,6 @@ const messageUpdateEvent = require('./events/messageUpdate');
 const messageDeleteEvent = require('./events/messageDelete');
 const messageBulkDeleteEvent = require('./events/messageBulkDelete');
 const messageReactionAddEvent = require('./events/messageReactionAdd');
-const messageReactionRemoveEvent = require('./events/messageReactionRemove');
 const interactionCreateEvent = require('./events/interactionCreate');
 const voiceStateUpdateEvent = require('./events/voiceStateUpdate');
 const guildMemberAddEvent = require('./events/guildMemberAdd');
@@ -26,7 +25,6 @@ const LEGACY_EVENTS = [
   // 旧コードは 'messageBulkDelete' で listen しており一度も発火していなかった。
   { event: 'messageDeleteBulk', handler: messageBulkDeleteEvent },
   { event: 'messageReactionAdd', handler: messageReactionAddEvent },
-  { event: 'messageReactionRemove', handler: messageReactionRemoveEvent },
   { event: 'interactionCreate', handler: interactionCreateEvent },
   { event: 'voiceStateUpdate', handler: voiceStateUpdateEvent },
   { event: 'guildMemberAdd', handler: guildMemberAddEvent },

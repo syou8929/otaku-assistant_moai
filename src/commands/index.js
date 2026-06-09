@@ -1,11 +1,9 @@
 const profileCommand = require('./profile');
 const maintenanceCommand = require('./maintenance');
-const animeCommand = require('./anime');
 
 const list = [
   profileCommand,
-  maintenanceCommand,
-  animeCommand
+  maintenanceCommand
 ];
 
 module.exports = {

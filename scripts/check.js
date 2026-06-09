@@ -56,7 +56,7 @@ const { createDatabase } = require(path.join(projectRoot, 'src', 'db', 'database
 const {
   ANIME_QUOTES_PATH,
   validateAnimeQuoteDatabase
-} = require(path.join(projectRoot, 'src', 'modules', 'anime', 'animeQuoteMessages'));
+} = require(path.join(projectRoot, 'src', 'plugins', 'anime', 'animeQuoteMessages'));
 const commands = require(path.join(projectRoot, 'src', 'commands'));
 const tempDatabasePath = path.join(os.tmpdir(), `otaku-assistant-check-${process.pid}.db`);
 const database = createDatabase(tempDatabasePath);

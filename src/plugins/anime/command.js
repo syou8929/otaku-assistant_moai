@@ -14,17 +14,17 @@ const {
   getAnimeById,
   maybeLinkRecentAnimeHashtagSource,
   getProviderTokenMissingMessage
-} = require('../modules/anime');
-const { buildAnimeLinks, getPreferredAnimeDisplayTitle } = require('../modules/anime/buildAnimeMessages');
-const { registerDeletableMessage } = require('../shared/deletableMessages');
+} = require('./index');
+const { buildAnimeLinks, getPreferredAnimeDisplayTitle } = require('./buildAnimeMessages');
+const { registerDeletableMessage } = require('../../shared/deletableMessages');
 const {
   buildCandidateLines,
   ensurePostSelectionStore,
   prunePostSelectionStore,
   analyzePostSelectionPolicy,
   buildPostCandidateSelectResponse
-} = require('../modules/anime/postSelection');
-const { normalizeAnimeSearchQuery } = require('../modules/anime/titleAliases');
+} = require('./postSelection');
+const { normalizeAnimeSearchQuery } = require('./titleAliases');
 
 function formatTitle(media) {
   return getPreferredAnimeDisplayTitle(media);

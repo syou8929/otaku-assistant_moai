@@ -5,7 +5,8 @@
     "vc-profile": { "enabled": true },
     "question": { "enabled": true },
     "intro": { "enabled": true },
-    "llm": { "enabled": true }
+    "llm": { "enabled": true },
+    "anime": { "enabled": true }
   },
   "entranceChannelId": "YOUR_ENTRANCE_CHANNEL_ID",
   "timelineChannelId": "YOUR_TIMELINE_CHANNEL_ID",

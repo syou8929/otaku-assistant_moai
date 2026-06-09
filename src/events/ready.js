@@ -1,8 +1,6 @@
 const pkg = require('../../package.json');
 const { getBotHealth } = require('../modules/ops/health');
 const { notifyOpsChannel } = require('../modules/ops/notify');
-const { runAnimeOrphanScan } = require('../modules/anime');
-const { getAnnictAccessToken } = require('../modules/anime/annictClient');
 
 module.exports = {
   async execute(client) {
@@ -44,27 +42,7 @@ module.exports = {
       maxParts: client.appConfig.timeline.shortMergeMaxParts
     });
 
-    client.logger.info('anime config loaded', {
-      enabled: client.appConfig.anime.enabled,
-      provider: client.appConfig.anime.provider,
-      channelId: client.appConfig.anime.channelId,
-      autoPostOnCastLookup: client.appConfig.anime.autoPostOnCastLookup,
-      interestEmoji: client.appConfig.anime.interestEmoji,
-      watchedEmoji: client.appConfig.anime.watchedEmoji
-    });
-
-    if (client.appConfig.anime.provider === 'annict' && !getAnnictAccessToken(client)) {
-      client.logger.warn('annict token missing', {
-        provider: client.appConfig.anime.provider,
-        accessTokenEnv: client.appConfig.annict.accessTokenEnv
-      });
-    }
-
-    await runAnimeOrphanScan(client).catch((error) => {
-      client.logger.error('anime orphan scan failed', {
-        error: error.message
-      });
-    });
+    // anime の config ログ・annict 警告・孤児スキャンは anime プラグイン（clientReady@105）が行う。
 
     // introDm キュー処理の開始は intro プラグイン（clientReady@110）が行う。
 

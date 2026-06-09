@@ -26,11 +26,12 @@ const {
 } = require('./imagePolicy');
 const { normalizeAnimeSearchQuery, buildAnimeSearchQueries } = require('./titleAliases');
 const { registerDeletableMessage } = require('../../shared/deletableMessages');
-const { extractPlainMessagePost } = require('../timelineRelay/extractFirstPost');
-const { buildTimelineMessage } = require('../timelineRelay/buildTimelineMessage');
-const { resolveTwitterMedia } = require('../timelineRelay/twitterMediaResolver');
-const { prepareVideoThumbnail } = require('../timelineRelay/videoThumbnail');
-const { prepareAttachmentRelay } = require('../timelineRelay/attachmentRelay');
+// 過渡的 deep import: timeline-relay のプラグイン化（Stage C）で dependsOn + ctx.services 経由へ
+const { extractPlainMessagePost } = require('../../modules/timelineRelay/extractFirstPost');
+const { buildTimelineMessage } = require('../../modules/timelineRelay/buildTimelineMessage');
+const { resolveTwitterMedia } = require('../../modules/timelineRelay/twitterMediaResolver');
+const { prepareVideoThumbnail } = require('../../modules/timelineRelay/videoThumbnail');
+const { prepareAttachmentRelay } = require('../../modules/timelineRelay/attachmentRelay');
 const {
   buildAnimeChannelCard,
   buildAnimeReviewUiCard,

@@ -1,4 +1,3 @@
-const { handleAnimeReactionAdd } = require('../modules/anime');
 const { handleDeletableMessageReaction } = require('../shared/deletableMessages');
 
 module.exports = {
@@ -8,21 +7,11 @@ module.exports = {
     try {
       const handledDeletion = await handleDeletableMessageReaction(reaction, user);
       if (handledDeletion) {
-        return;
+        // true を返して以降のハンドラ（anime@110 等）を停止する（旧チェーンのゲートと同じ）
+        return true;
       }
     } catch (error) {
       client?.logger?.error?.('Failed to handle deletable message reaction', {
-        messageId: reaction.message?.id || null,
-        channelId: reaction.message?.channelId || null,
-        userId: user?.id || null,
-        error: error.message
-      });
-    }
-
-    try {
-      await handleAnimeReactionAdd(reaction, user);
-    } catch (error) {
-      client?.logger?.error?.('Failed to handle anime messageReactionAdd', {
         messageId: reaction.message?.id || null,
         channelId: reaction.message?.channelId || null,
         userId: user?.id || null,

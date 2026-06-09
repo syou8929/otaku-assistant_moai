@@ -5,12 +5,11 @@ const { prepareVideoThumbnail } = require('./videoThumbnail');
 const { prepareAttachmentRelay } = require('./attachmentRelay');
 const { resolveTwitterMedia } = require('./twitterMediaResolver');
 const { enrichPostWithMusicLink } = require('./musicLinks');
-const { getThreadTagApplier } = require('./hooks');
+const { getThreadTagApplier, getHashtagPostHandler } = require('./hooks');
 const { getRecentArchivedMessages } = require('../../shared/messageArchive');
 const { getMessageJumpUrl } = require('../../shared/discordLinks');
 const { getSilentRelayControl, parseRelayHashtagPrefixes } = require('../../utils/text');
 const { resolveRouteAccentColor } = require('../../utils/accentColors');
-const { handleAnimeHashtagPost } = require('../anime/hashtagIntegration');
 
 function buildQuestionGuideMessage(timelineMessageUrl = null) {
   return [
@@ -1964,7 +1963,7 @@ async function relayGlobalHashtagMessage(message, { config, db, logger }) {
     }
 
     if (globalMatches.size > 0) {
-      void handleAnimeHashtagPost(message, {
+      void getHashtagPostHandler()?.(message, {
         matchedRouteKeys: Array.from(globalMatches.keys()),
         cleanedContent: post.content,
         displayHashtags: post.displayBotHashtags
@@ -2247,7 +2246,7 @@ async function handleReplyBasedGlobalHashtagRoute(message, { config, db, logger 
       animeEntryId: null,
       status: 'pending'
     });
-    void handleAnimeHashtagPost(targetMessage, {
+    void getHashtagPostHandler()?.(targetMessage, {
       matchedRouteKeys: replyRouting.globalMatchedRoutes,
       cleanedContent: post.content,
       displayHashtags: post.displayBotHashtags

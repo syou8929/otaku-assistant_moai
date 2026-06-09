@@ -42,15 +42,6 @@ module.exports = {
       });
     }
 
-    try {
-      const { handleAnimeParentMessageDeleted } = require('../modules/anime');
-      await handleAnimeParentMessageDeleted(client, message);
-    } catch (error) {
-      client.logger.error('anime parent delete cleanup failed', {
-        messageId,
-        channelId: message.channelId || null,
-        error: error.message
-      });
-    }
+    // anime カードの親メッセージ削除後始末は anime プラグイン（messageDelete@110）が行う。
   }
 };

@@ -16,7 +16,20 @@ function getThreadTagApplier() {
   return threadTagApplier;
 }
 
+// anime プラグイン: relay されたメッセージのアニメ hashtag 後処理（カード投稿等）
+let hashtagPostHandler = null;
+
+function registerHashtagPostHandler(fn) {
+  hashtagPostHandler = typeof fn === 'function' ? fn : null;
+}
+
+function getHashtagPostHandler() {
+  return hashtagPostHandler;
+}
+
 module.exports = {
   registerThreadTagApplier,
-  getThreadTagApplier
+  getThreadTagApplier,
+  registerHashtagPostHandler,
+  getHashtagPostHandler
 };
