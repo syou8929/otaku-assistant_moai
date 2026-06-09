@@ -35,6 +35,24 @@ module.exports = {
           messageId
         });
       }
+    },
+    // 旧 messageBulkDelete チェーンの llm_responses 一括掃除スロット（archive@100 の後）。
+    messageDeleteBulk: {
+      priority: 101,
+      handle: async (messages) => {
+        const firstMessage = messages?.first?.() || null;
+        const client = firstMessage?.client;
+
+        if (!client || !messages?.size) {
+          return;
+        }
+
+        const messageIds = Array.from(messages.keys());
+        client.db.llmResponses.deleteByMessageIds(messageIds);
+        client.logger.info('LLM response reference bulk deleted', {
+          count: messageIds.length
+        });
+      }
     }
   }
 };

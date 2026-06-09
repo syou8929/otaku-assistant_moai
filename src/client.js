@@ -17,9 +17,6 @@ const LEGACY_PRIORITY = 100;
 
 const LEGACY_EVENTS = [
   { event: 'clientReady', handler: readyEvent, once: true },
-  // discord.js v14 の実 emit 名は messageDeleteBulk（Events.MessageBulkDelete）。
-  // 旧コードは 'messageBulkDelete' で listen しており一度も発火していなかった。
-  { event: 'messageDeleteBulk', handler: messageBulkDeleteEvent },
   { event: 'messageReactionAdd', handler: messageReactionAddEvent },
   { event: 'interactionCreate', handler: interactionCreateEvent },
   { event: 'voiceStateUpdate', handler: voiceStateUpdateEvent },
@@ -81,7 +78,9 @@ function createBotClient({ appConfig, database, logger, eventRouter }) {
   const stepEvents = [
     ['messageCreate', messageCreateEvent.steps],
     ['messageUpdate', messageUpdateEvent.steps],
-    ['messageDelete', messageDeleteEvent.steps]
+    ['messageDelete', messageDeleteEvent.steps],
+    // discord.js v14 の実 emit 名は messageDeleteBulk（Events.MessageBulkDelete）。
+    ['messageDeleteBulk', messageBulkDeleteEvent.steps]
   ];
 
   for (const [event, steps] of stepEvents) {

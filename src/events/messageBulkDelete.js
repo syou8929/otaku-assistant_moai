@@ -1,38 +1,34 @@
-module.exports = {
-  async execute(messages) {
-    const firstMessage = messages?.first?.() || null;
-    const client = firstMessage?.client;
-    if (!client || !messages?.size) {
-      return;
-    }
+/**
+ * 旧 execute() の直列チェーンをステップ単位の router 登録へ分解したもの
+ * （events/messageDelete.js と同じ方式）。停止するステップは無い。
+ * llm_responses の一括掃除は llm プラグイン（messageDeleteBulk@101）が行う。
+ */
+const steps = [
+  {
+    name: 'archive-cleanup',
+    priority: 100,
+    handle: async (messages) => {
+      const firstMessage = messages?.first?.() || null;
+      const client = firstMessage?.client;
 
-    const messageIds = Array.from(messages.keys());
+      if (!client || !messages?.size) {
+        return;
+      }
 
-    try {
+      const messageIds = Array.from(messages.keys());
       client.db.archives.deleteMessages(messageIds);
+
       for (const messageId of messageIds) {
         client.db.introProfiles.deleteByMessageId(messageId);
       }
+
       client.logger.info('Message archive bulk deleted', {
         count: messageIds.length
       });
-    } catch (error) {
-      client.logger.error('delete archive failed', {
-        count: messageIds.length,
-        error: error.message
-      });
-    }
-
-    try {
-      client.db.llmResponses.deleteByMessageIds(messageIds);
-      client.logger.info('LLM response reference bulk deleted', {
-        count: messageIds.length
-      });
-    } catch (error) {
-      client.logger.error('delete llm response reference failed', {
-        count: messageIds.length,
-        error: error.message
-      });
     }
   }
+];
+
+module.exports = {
+  steps
 };

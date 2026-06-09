@@ -9,15 +9,14 @@
 |---|---|
 | フォルダ | `src/plugins/llm/` |
 | config キー | `llm*`（llmEnabled / llmContextMessageLimit ほか多数）/ `ollamaBaseUrl` / `ollamaModel` / `plugins.llm`（注: 現状 `loadConfig.js` 共通スキーマに残置。Stage F で本プラグインへ移動） |
-| DB テーブル | `llm_responses`（`db.llmResponses`。削除掃除は本プラグインの messageDelete@101。注: `events/messageBulkDelete.js` の一括削除掃除と maintenance の count 表示が legacy 側に残置 — Stage D-E で整理） |
+| DB テーブル | `llm_responses`（`db.llmResponses`。単発/一括の削除掃除は本プラグインの messageDelete@101 / messageDeleteBulk@101。注: maintenance の count 表示が legacy 側に残置 — maintenance 分解で整理） |
 | intents | Guilds / GuildMessages / **MessageContent**（content を読む数少ない機能） |
 | client 状態 | `client.activeLlmUsers` / `client.llmGlobalRequestActive`（並行制御。maintenance の status 表示が読む） |
 | 依存 | shared: llmClient / userMemory / introProfiles / messageArchive |
 
 ## 残課題（Stage D〜F）
 
-- `events/messageBulkDelete.js` の `db.llmResponses` 一括削除掃除と maintenance の LLM status 表示・
-  userMemory 操作サブコマンドは legacy 側に残置（maintenance 分解・messageDeleteBulk 分解で移行）。
+- maintenance の LLM status 表示・userMemory 操作サブコマンドは legacy 側に残置（maintenance 分解で移行）。
 - `shared/llmClient` は基盤側の所有。このプラグインを外しても introDm の LLM 返信は動く。
 
 ## 9層アナトミー対応
