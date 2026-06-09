@@ -6,9 +6,18 @@ const { loadConfig } = require('./config/loadConfig');
 const { createDatabase } = require('./db/database');
 const { createLogger } = require('./services/logger');
 const { notifyOpsChannel } = require('./modules/ops/notify');
+const { createEventRouter } = require('./core/eventRouter');
+const {
+  discoverPluginManifests,
+  resolveEnabledManifests,
+  assertDependenciesSatisfied,
+  sortByDependencies,
+  loadPlugins
+} = require('./core/pluginLoader');
 
 const bootstrapLogger = createLogger('app');
 let activeClient = null;
+let activePluginRuntime = null;
 let shuttingDown = false;
 
 async function notifyFatal(title, error) {
@@ -39,6 +48,8 @@ async function shutdown(signal, exitCode = 0) {
     ].join('\n'));
   }
 
+  activePluginRuntime?.teardown();
+
   try {
     activeClient?.destroy();
   } catch (error) {
@@ -62,6 +73,26 @@ async function main() {
     logger: bootstrapLogger
   });
   activeClient = client;
+
+  const eventRouter = createEventRouter({ logger: bootstrapLogger });
+  const manifests = discoverPluginManifests(path.resolve(__dirname, 'plugins'));
+  const enabledManifests = sortByDependencies(
+    resolveEnabledManifests(manifests, appConfig.plugins)
+  );
+  assertDependenciesSatisfied(enabledManifests);
+  activePluginRuntime = loadPlugins({
+    manifests: enabledManifests,
+    client,
+    db: database,
+    config: appConfig,
+    logger: bootstrapLogger,
+    eventRouter
+  });
+  eventRouter.attach(client);
+  bootstrapLogger.info('Plugins loaded', {
+    discovered: manifests.map((manifest) => manifest.name),
+    enabled: activePluginRuntime.loaded
+  });
 
   client.once('shardError', (error) => {
     bootstrapLogger.error('Discord shard error', { error: error.message });
