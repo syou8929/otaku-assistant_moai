@@ -92,3 +92,20 @@ anime が import しているのは relay「機能」ではなく **メディア
 2. **introDm → llm は ollamaClient のみ**: llmClient を shared 化すれば intro と llm 機能は完全に独立する。
 3. **events/ の直列チェーンは messageCreate に 7 段**: early-return するのは introDm / animeWatchedPromptReply / replyBasedRoute の 3 つ。eventRouter 移行時は priority と「true で停止」の対応表を作って移すこと。
 4. **enabledByDefault の移行ポリシー**: spec は「既定 OFF」だが、稼働中サーバーの無停止移行（strangler-fig）を優先し、**移送済みプラグインは移行期間中 enabledByDefault: true** とする。Stage F（基盤ニュートラル化 = Armabot 化）で一括して既定 OFF へ反転し、loadout（config.plugins）で明示 ON する方式に切り替える。
+
+---
+
+## 4. 移行結果（2026-06-10 追記）
+
+本ドキュメントの計画は同日中に**完遂**した。§2 の粒度どおり 8 プラグイン＋shared 7 メンバーが
+`src/plugins/` / `src/shared/` に移送され、`src/modules/` は消滅（ops は `core/ops/` へ）。
+§1 の相互依存 3 本はすべてフック反転（`timeline-relay/hooks.js` ＋ `shared/introProfiles` の
+保存フック）で切断済み。question / anime は `dependsOn: ['timeline-relay']` を宣言し、
+フック登録は `ctx.services` 経由。
+
+計画との差分:
+- `ollamaClient` は `shared/llmClient` へ昇格（introDm と llm の共有プロバイダ）— §2 のとおり。
+- questionWatcher は未参照スタブだったため移送ではなく削除。
+- maintenance コマンドの分解（§3-1）と anime→relay メディアユーティリティの整理（§1）、
+  per-plugin migrations/repository、config-as-schema、既定 OFF 反転は Stage D〜F の課題として
+  各プラグインの blueprint.md に記録。
