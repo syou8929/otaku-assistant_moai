@@ -34,6 +34,24 @@ for (const filePath of files) {
   execFileSync(process.execPath, ['--check', filePath], { stdio: 'inherit' });
 }
 
+// require 解決の検証: エントリポイント以外の src/ 全モジュールをロードする。
+// node --check は構文のみで、壊れた require パス（モジュール移動の取りこぼし）を
+// 検出できないため。index.js は bot 起動、registerCommands.js は Discord API を
+// require 時に呼ぶため除外する。
+const requireEntryPoints = new Set([
+  path.join(projectRoot, 'src', 'index.js'),
+  path.join(projectRoot, 'src', 'registerCommands.js')
+]);
+const srcPrefix = path.join(projectRoot, 'src') + path.sep;
+
+for (const filePath of files) {
+  if (!filePath.startsWith(srcPrefix) || requireEntryPoints.has(filePath)) {
+    continue;
+  }
+
+  require(filePath);
+}
+
 const { createDatabase } = require(path.join(projectRoot, 'src', 'db', 'database'));
 const {
   ANIME_QUOTES_PATH,
