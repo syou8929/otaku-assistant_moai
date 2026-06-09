@@ -689,39 +689,6 @@ function createDatabase(databasePath) {
       WHERE status = 'processing'
         AND datetime(updated_at) <= datetime(?)
     `),
-    insertIntroReaction: sqlite.prepare(`
-      INSERT INTO intro_reactions (
-        guild_id,
-        emoji_key,
-        emoji_name,
-        emoji_id,
-        animated,
-        sort_order,
-        created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)
-    `),
-    listIntroReactions: sqlite.prepare(`
-      SELECT
-        guild_id AS guildId,
-        emoji_key AS emojiKey,
-        emoji_name AS emojiName,
-        emoji_id AS emojiId,
-        animated,
-        sort_order AS sortOrder,
-        created_at AS createdAt
-      FROM intro_reactions
-      WHERE guild_id = ?
-      ORDER BY sort_order ASC, created_at ASC
-    `),
-    clearIntroReactions: sqlite.prepare(`
-      DELETE FROM intro_reactions
-      WHERE guild_id = ?
-    `),
-    countIntroReactions: sqlite.prepare(`
-      SELECT COUNT(*) AS count
-      FROM intro_reactions
-      WHERE guild_id = ?
-    `),
     upsertIntroProfile: sqlite.prepare(`
       INSERT INTO intro_profiles (
         guild_id,
@@ -2213,28 +2180,6 @@ function createDatabase(databasePath) {
       },
       listByChannel(guildId, introChannelId, limit = 1000) {
         return statements.listIntroProfilesByChannel.all(guildId, introChannelId, limit);
-      }
-    },
-    introReactions: {
-      insert({ guildId, emojiKey, emojiName, emojiId, animated = false, sortOrder }) {
-        statements.insertIntroReaction.run(
-          guildId,
-          emojiKey,
-          emojiName,
-          emojiId,
-          animated ? 1 : 0,
-          sortOrder,
-          new Date().toISOString()
-        );
-      },
-      list(guildId) {
-        return statements.listIntroReactions.all(guildId);
-      },
-      clear(guildId) {
-        statements.clearIntroReactions.run(guildId);
-      },
-      count(guildId) {
-        return Number(statements.countIntroReactions.get(guildId)?.count || 0);
       }
     },
     guildMembers: {

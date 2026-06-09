@@ -37,7 +37,7 @@ async function createIntroReactionSetup(interaction) {
   const { client } = interaction;
   const store = ensureSetupStore(client);
   const maxCount = Number(client.appConfig.introReactionsMax || 5);
-  client.db.introReactions.clear(interaction.guildId);
+  client.db.intro.clear(interaction.guildId);
 
   const setupMessage = await interaction.channel.send({
     content: `自己紹介投稿につけたいリアクションをこのメッセージに押してください。最大${maxCount}個まで保存されます。`
@@ -60,12 +60,12 @@ async function createIntroReactionSetup(interaction) {
 }
 
 function listIntroReactions(client, guildId) {
-  return client.db.introReactions.list(guildId);
+  return client.db.intro.list(guildId);
 }
 
 function clearIntroReactions(client, guildId) {
-  const count = client.db.introReactions.count(guildId);
-  client.db.introReactions.clear(guildId);
+  const count = client.db.intro.count(guildId);
+  client.db.intro.clear(guildId);
   client.logger.info('Intro reactions cleared', {
     guildId,
     clearedCount: count
@@ -89,7 +89,7 @@ async function syncIntroReactionsFromSetupMessage(message, options = {}) {
       guildId,
       reactionMessageId: message.id
     });
-    return { savedCount: client.db.introReactions.count(guildId) };
+    return { savedCount: client.db.intro.count(guildId) };
   }
 
   const collected = [];
@@ -104,9 +104,9 @@ async function syncIntroReactionsFromSetupMessage(message, options = {}) {
   }
 
   const selected = collected.slice(0, maxCount);
-  client.db.introReactions.clear(guildId);
+  client.db.intro.clear(guildId);
   selected.forEach((reaction, index) => {
-    client.db.introReactions.insert({
+    client.db.intro.insert({
       guildId,
       ...reaction,
       sortOrder: index + 1
@@ -232,7 +232,7 @@ async function removeOutdatedBotReactions(message, savedEmojiKeySet, client, log
 async function applyIntroReactionsToMessage(message) {
   const client = message.client;
   const logger = client.logger;
-  const reactions = client.db.introReactions.list(message.guildId);
+  const reactions = client.db.intro.list(message.guildId);
   if (!reactions.length) {
     logger.info('intro reaction skipped no configured reactions', {
       messageId: message.id,
@@ -247,7 +247,7 @@ async function backfillIntroReactions(client, guildId) {
   const logger = client.logger;
   const introChannelId = String(client.appConfig.introDm?.introChannelId || client.appConfig.introChannelId || '');
   const rows = client.db.introProfiles.listByChannel(guildId, introChannelId, 2000);
-  const reactions = client.db.introReactions.list(guildId);
+  const reactions = client.db.intro.list(guildId);
   const savedEmojiKeySet = new Set(reactions.map((r) => r.emojiKey).filter(Boolean));
   let reactedMessageCount = 0;
   let appliedCount = 0;

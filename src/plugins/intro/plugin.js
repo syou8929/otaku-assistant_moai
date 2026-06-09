@@ -20,6 +20,8 @@ module.exports = {
   dependsOn: [],
   intents: ['Guilds', 'GuildMessages', 'GuildMessageReactions', 'GuildMembers', 'DirectMessages', 'GuildVoiceStates'],
   capabilities: {},
+  migrations: require('./migrations'),
+  repository: require('./repository'),
   commands: [command],
   events: {
     // 旧チェーンで introDm は messageCreate の先頭・early-return だった。
