@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 const path = require('node:path');
-const { createBotClient } = require('./client');
+const { createBotClient, assertPluginIntentsCovered } = require('./client');
 const { loadConfig } = require('./config/loadConfig');
 const { createDatabase } = require('./db/database');
 const { createLogger } = require('./services/logger');
@@ -120,6 +120,7 @@ async function main() {
     logger: bootstrapLogger,
     eventRouter
   });
+  assertPluginIntentsCovered(client, enabledManifests);
   eventRouter.attach(client);
   bootstrapLogger.info('Plugins loaded', {
     discovered: manifests.map((manifest) => manifest.name),

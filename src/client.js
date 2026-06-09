@@ -97,6 +97,35 @@ function createBotClient({ appConfig, database, logger, eventRouter }) {
   return client;
 }
 
+/**
+ * 有効プラグインが宣言した intents が client の intent 集合に含まれることを検査する。
+ * intent 不足はイベントが「静かに来なくなる」事故なので fail-fast にする。
+ * （Stage E で intents union による client 生成へ反転したらこの検査は逆向きになる）
+ */
+function assertPluginIntentsCovered(client, manifests) {
+  const problems = [];
+
+  for (const manifest of manifests) {
+    for (const intent of manifest.intents || []) {
+      const bit = GatewayIntentBits[intent];
+
+      if (bit === undefined) {
+        problems.push(`${manifest.name}: unknown intent "${intent}"`);
+        continue;
+      }
+
+      if (!client.options.intents.has(bit)) {
+        problems.push(`${manifest.name}: intent "${intent}" is not enabled on the client`);
+      }
+    }
+  }
+
+  if (problems.length > 0) {
+    throw new Error(`Plugin intent coverage check failed:\n  ${problems.join('\n  ')}`);
+  }
+}
+
 module.exports = {
-  createBotClient
+  createBotClient,
+  assertPluginIntentsCovered
 };

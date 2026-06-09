@@ -85,6 +85,15 @@ for (const command of allCommands) {
   }
 }
 
+const { GatewayIntentBits } = require('discord.js');
+for (const manifest of pluginManifests) {
+  for (const intent of manifest.intents || []) {
+    if (GatewayIntentBits[intent] === undefined) {
+      throw new Error(`Plugin ${manifest.name} declares unknown intent "${intent}"`);
+    }
+  }
+}
+
 const commandNames = allCommands.map((command) => command.data.name);
 const duplicateNames = commandNames.filter((name, index) => commandNames.indexOf(name) !== index);
 if (duplicateNames.length > 0) {
