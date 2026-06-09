@@ -8,7 +8,6 @@ const {
 } = require('./index');
 const { handleAnimeHashtagPost } = require('./hashtagIntegration');
 const { getAnnictAccessToken } = require('./annictClient');
-const { registerHashtagPostHandler } = require('../../modules/timelineRelay/hooks');
 
 module.exports = {
   name: 'anime',
@@ -16,7 +15,7 @@ module.exports = {
   // 基盤ニュートラル化（Stage F）で既定OFFへ反転する（dependency-map.md §3-4）。
   // 実行時の有効/無効は従来どおり config の anime.enabled も併用される。
   enabledByDefault: true,
-  dependsOn: [],
+  dependsOn: ['timeline-relay'],
   intents: ['Guilds', 'GuildMessages', 'GuildMessageReactions', 'MessageContent'],
   capabilities: {},
   commands: [command],
@@ -98,9 +97,9 @@ module.exports = {
       }
     }
   },
-  init() {
+  init({ services }) {
     // relay されたメッセージのアニメ hashtag 後処理（フック反転 #3）。
     // このプラグインを無効化/削除するとフック未登録のままで relay 側は no-op。
-    registerHashtagPostHandler(handleAnimeHashtagPost);
+    services['timeline-relay'].registerHashtagPostHandler(handleAnimeHashtagPost);
   }
 };

@@ -52,10 +52,25 @@ function validateManifest(manifest, folderName) {
     }
 
     for (const [eventName, entry] of Object.entries(manifest.events)) {
-      if (typeof entry?.handle !== 'function') {
-        throw new Error(
-          `Plugin "${manifest.name}": events.${eventName} needs a handle function`
-        );
+      // 同一イベントへ複数スロットを登録する場合は配列（各要素に name 必須）
+      const entries = Array.isArray(entry) ? entry : [entry];
+
+      if (entries.length === 0) {
+        throw new Error(`Plugin "${manifest.name}": events.${eventName} array must not be empty`);
+      }
+
+      for (const item of entries) {
+        if (typeof item?.handle !== 'function') {
+          throw new Error(
+            `Plugin "${manifest.name}": events.${eventName} needs a handle function`
+          );
+        }
+
+        if (Array.isArray(entry) && !item.name) {
+          throw new Error(
+            `Plugin "${manifest.name}": each events.${eventName} array entry needs a name`
+          );
+        }
       }
     }
   }
@@ -169,9 +184,8 @@ function loadPlugins({ manifests, client, db, config, logger, services = {}, eve
   const loadedEntries = [];
 
   for (const manifest of manifests) {
-    if (manifest.api) {
-      services[manifest.name] = manifest.api;
-    }
+    // api 未公開でも空オブジェクトを発行し、依存側の services[name] 参照を常に安全にする
+    services[manifest.name] = manifest.api || {};
 
     const ctx = { client, db, config, logger, services };
 
@@ -190,12 +204,18 @@ function loadPlugins({ manifests, client, db, config, logger, services = {}, eve
     }
 
     for (const [eventName, entry] of Object.entries(manifest.events || {})) {
-      eventRouter.register(eventName, {
-        name: `${manifest.name}:${eventName}`,
-        priority: entry.priority,
-        once: entry.once,
-        handle: (...args) => entry.handle(...args, ctx)
-      });
+      const entries = Array.isArray(entry) ? entry : [entry];
+
+      for (const item of entries) {
+        eventRouter.register(eventName, {
+          name: item.name
+            ? `${manifest.name}:${eventName}:${item.name}`
+            : `${manifest.name}:${eventName}`,
+          priority: item.priority,
+          once: item.once,
+          handle: (...args) => item.handle(...args, ctx)
+        });
+      }
     }
 
     manifest.init?.(ctx);

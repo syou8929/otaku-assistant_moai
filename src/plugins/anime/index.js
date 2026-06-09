@@ -26,12 +26,13 @@ const {
 } = require('./imagePolicy');
 const { normalizeAnimeSearchQuery, buildAnimeSearchQueries } = require('./titleAliases');
 const { registerDeletableMessage } = require('../../shared/deletableMessages');
-// 過渡的 deep import: timeline-relay のプラグイン化（Stage C）で dependsOn + ctx.services 経由へ
-const { extractPlainMessagePost } = require('../../modules/timelineRelay/extractFirstPost');
-const { buildTimelineMessage } = require('../../modules/timelineRelay/buildTimelineMessage');
-const { resolveTwitterMedia } = require('../../modules/timelineRelay/twitterMediaResolver');
-const { prepareVideoThumbnail } = require('../../modules/timelineRelay/videoThumbnail');
-const { prepareAttachmentRelay } = require('../../modules/timelineRelay/attachmentRelay');
+// 過渡的 cross-plugin deep import（dependsOn 宣言済み）: メディア群の shared/media 昇格
+// もしくは ctx.services 経由化を Stage D/F で行う
+const { extractPlainMessagePost } = require('../timeline-relay/extractFirstPost');
+const { buildTimelineMessage } = require('../timeline-relay/buildTimelineMessage');
+const { resolveTwitterMedia } = require('../timeline-relay/twitterMediaResolver');
+const { prepareVideoThumbnail } = require('../timeline-relay/videoThumbnail');
+const { prepareAttachmentRelay } = require('../timeline-relay/attachmentRelay');
 const {
   buildAnimeChannelCard,
   buildAnimeReviewUiCard,

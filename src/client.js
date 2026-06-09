@@ -1,7 +1,6 @@
 const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
 const commands = require('./commands');
 const readyEvent = require('./events/ready');
-const threadCreateEvent = require('./events/threadCreate');
 const messageCreateEvent = require('./events/messageCreate');
 const messageUpdateEvent = require('./events/messageUpdate');
 const messageDeleteEvent = require('./events/messageDelete');
@@ -18,7 +17,6 @@ const LEGACY_PRIORITY = 100;
 
 const LEGACY_EVENTS = [
   { event: 'clientReady', handler: readyEvent, once: true },
-  { event: 'threadCreate', handler: threadCreateEvent },
   { event: 'messageDelete', handler: messageDeleteEvent },
   // discord.js v14 の実 emit 名は messageDeleteBulk（Events.MessageBulkDelete）。
   // 旧コードは 'messageBulkDelete' で listen しており一度も発火していなかった。
