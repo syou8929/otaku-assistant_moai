@@ -18,6 +18,23 @@ module.exports = {
       handle: async (message) => {
         await handleLlmMessage(message);
       }
+    },
+    // 旧 messageDelete チェーンの llm_responses 掃除スロット（archive@100 の後・deletable@102 の前）。
+    messageDelete: {
+      priority: 101,
+      handle: async (message) => {
+        const client = message?.client;
+        const messageId = message?.id;
+
+        if (!client || !messageId) {
+          return;
+        }
+
+        client.db.llmResponses.deleteByMessageId(messageId);
+        client.logger.info('LLM response reference deleted', {
+          messageId
+        });
+      }
     }
   }
 };
