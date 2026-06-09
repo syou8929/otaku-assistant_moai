@@ -23,7 +23,9 @@ const LEGACY_EVENTS = [
   { event: 'messageCreate', handler: messageCreateEvent },
   { event: 'messageUpdate', handler: messageUpdateEvent },
   { event: 'messageDelete', handler: messageDeleteEvent },
-  { event: 'messageBulkDelete', handler: messageBulkDeleteEvent },
+  // discord.js v14 の実 emit 名は messageDeleteBulk（Events.MessageBulkDelete）。
+  // 旧コードは 'messageBulkDelete' で listen しており一度も発火していなかった。
+  { event: 'messageDeleteBulk', handler: messageBulkDeleteEvent },
   { event: 'messageReactionAdd', handler: messageReactionAddEvent },
   { event: 'messageReactionRemove', handler: messageReactionRemoveEvent },
   { event: 'interactionCreate', handler: interactionCreateEvent },
