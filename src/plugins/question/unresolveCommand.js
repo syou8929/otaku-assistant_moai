@@ -1,14 +1,14 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { resolveThread } = require('../modules/questionResolver');
+const { resolveThread } = require('./resolver');
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('resolve')
-    .setDescription('この質問を解決済みにします。'),
+    .setName('unresolve')
+    .setDescription('この質問の解決済みを解除します。'),
   async execute(interaction) {
     await resolveThread({
       interaction,
-      mode: 'resolve'
+      mode: 'unresolve'
     });
   }
 };

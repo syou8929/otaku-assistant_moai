@@ -4,7 +4,8 @@ const { updateResolvedState } = require('./resolveThread');
 const { applyQuestionStatusTag, areQuestionStatusTagsAlreadyCorrect } = require('./threadTags');
 const { canManageQuestionThread } = require('../../utils/permissions');
 const { addPrefix, removePrefix } = require('../../utils/text');
-const { updateQuestionTimelineCard } = require('../timelineRelay');
+// 過渡的 deep import: timeline-relay のプラグイン化（Stage C）で ctx.services 経由へ
+const { updateQuestionTimelineCard } = require('../../modules/timelineRelay');
 const THREAD_NAME_MAX_LENGTH = 100;
 
 function isWatchedQuestionThread(channel, config) {

@@ -4,8 +4,8 @@ const path = require('node:path');
 const { Client, GatewayIntentBits } = require('discord.js');
 const { loadConfig } = require('../src/config/loadConfig');
 const { createLogger } = require('../src/services/logger');
-const { applyQuestionStatusTag } = require('../src/modules/questionResolver/threadTags');
-const { backfillQuestionTags } = require('../src/modules/questionResolver/backfillQuestionTags');
+const { applyQuestionStatusTag } = require('../src/plugins/question/threadTags');
+const { backfillQuestionTags } = require('../src/plugins/question/backfillQuestionTags');
 
 async function main() {
   const logger = createLogger('backfill-question-tags');

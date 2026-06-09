@@ -5,7 +5,7 @@ const { prepareVideoThumbnail } = require('./videoThumbnail');
 const { prepareAttachmentRelay } = require('./attachmentRelay');
 const { resolveTwitterMedia } = require('./twitterMediaResolver');
 const { enrichPostWithMusicLink } = require('./musicLinks');
-const { applyQuestionStatusTag } = require('../questionResolver/threadTags');
+const { getThreadTagApplier } = require('./hooks');
 const { getRecentArchivedMessages } = require('../messageArchive');
 const { getMessageJumpUrl } = require('../../services/discordLinks');
 const { getSilentRelayControl, parseRelayHashtagPrefixes } = require('../../utils/text');
@@ -982,7 +982,11 @@ async function relayForumThread(thread, { config, db, logger }) {
     });
 
     if (forumType === 'question') {
-      await applyQuestionStatusTag(thread, 'open', { config, logger });
+      // question プラグインが登録したフック。未登録（プラグイン無効/削除）なら no-op。
+      const applyThreadTag = getThreadTagApplier();
+      if (applyThreadTag) {
+        await applyThreadTag(thread, 'open', { config, logger });
+      }
 
       const questionRecord = db.questions.getQuestionThread(thread.id);
       if (!questionRecord?.guideMessageId) {
