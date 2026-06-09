@@ -1,26 +1,12 @@
 const { relayTweetMessage, relayGlobalHashtagMessage, handleReplyBasedGlobalHashtagRoute } = require('../modules/timelineRelay');
 const { saveMessageToArchive } = require('../modules/messageArchive');
 const { handleLlmMessage } = require('../modules/llm');
-const { handleIntroDmMessage } = require('../modules/introDm');
 const { saveIntroProfileFromMessage } = require('../shared/introProfiles');
 const { handleAnimeWatchedPromptReply } = require('../modules/anime');
 
 module.exports = {
   async execute(message) {
     const client = message.client;
-
-    try {
-      const handledIntroDm = await handleIntroDmMessage(message);
-      if (handledIntroDm) {
-        return;
-      }
-    } catch (error) {
-      client.logger.error('Failed to handle intro DM message', {
-        messageId: message.id,
-        channelId: message.channelId,
-        error: error.message
-      });
-    }
 
     try {
       await saveMessageToArchive(client, message);

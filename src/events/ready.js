@@ -1,7 +1,6 @@
 const pkg = require('../../package.json');
 const { getBotHealth } = require('../modules/ops/health');
 const { notifyOpsChannel } = require('../modules/ops/notify');
-const { startIntroDmQueueProcessor } = require('../modules/introDm');
 const { runAnimeOrphanScan } = require('../modules/anime');
 const { getAnnictAccessToken } = require('../modules/anime/annictClient');
 
@@ -67,7 +66,7 @@ module.exports = {
       });
     });
 
-    startIntroDmQueueProcessor(client);
+    // introDm キュー処理の開始は intro プラグイン（clientReady@110）が行う。
 
     await notifyOpsChannel(client, [
       '✅ Otaku Assistant started / ready',

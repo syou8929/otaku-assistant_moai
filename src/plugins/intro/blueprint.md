@@ -1,8 +1,8 @@
 # intro プラグイン blueprint
 
-自己紹介まわりの機能群。**第1便（現状）**: intro リアクション（設定・保存済みリアクションの
-自動付与）。**第2便（予定）**: introDm（参加者への自己紹介促し DM・キュー処理）と `/intro`
-コマンド。プロフィールの保存・読取 API は `shared/introProfiles` が持つ（llm 等も読むため）。
+自己紹介まわりの機能群（移送完了）: intro リアクション（設定・保存済みリアクションの自動付与）、
+introDm（参加者への自己紹介促し DM・キュー処理・DM 返信対応）、`/intro` コマンド。
+プロフィールの保存・読取 API は `shared/introProfiles` が持つ（llm 等も読むため）。
 
 ## Removal footprint（このプラグインを外すときに消えるもの）
 
@@ -14,12 +14,10 @@
 | intents | Guilds / GuildMessages / GuildMessageReactions（他プラグインと共有） |
 | client 状態 | `client.activeIntroReactionSetups` |
 | フック | `shared/introProfiles.registerIntroMessageSavedHandler`（init で登録。未登録なら保存後の付与は no-op） |
-| 依存元（過渡的） | `src/commands/intro.js`（legacy）が `./introReactions` を deep import — 第2便でコマンドごと本プラグインへ |
+| 依存元（過渡的） | なし（第2便でコマンド・introDm とも本プラグインへ移送済み。`introDm.js`/`command.js` が `modules/guildMembers` を deep import — guildMembers の shared 昇格で解消） |
 
-> **既知の過渡的不整合（第2便で解消）**: 移行期間中に `plugins.intro.enabled: false` にすると、
-> リアクションイベント処理は止まるが legacy の `/intro` コマンドは静的リスト経由で生き残る。
-> `setup-reactions` を実行すると消費者のいない setup 状態が残る。第2便（コマンド移送）まで
-> このプラグインの無効化は想定外とする。
+> 第1便時の既知の不整合（legacy `/intro` がプラグイン無効時も生存）は第2便のコマンド移送で解消済み。
+> `plugins.intro.enabled: false` で `/intro`・リアクション・DM・キューが揃って消える。
 
 ## 依存
 

@@ -1,5 +1,4 @@
 const { updateGuildMemberVcJoined, upsertGuildMember } = require('../modules/guildMembers');
-const { maybeSendVcNoIntroDm } = require('../modules/introDm');
 
 module.exports = {
   async execute(oldState, newState) {
@@ -11,7 +10,6 @@ module.exports = {
     try {
       upsertGuildMember(newState.client, member);
       updateGuildMemberVcJoined(newState.client, member, new Date());
-      await maybeSendVcNoIntroDm(newState.client, member);
     } catch (error) {
       newState.client.logger.error('Failed to handle VC intro detection', {
         guildId: member.guild?.id || null,

@@ -1,26 +1,26 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { isAdministrator } = require('../utils/permissions');
+const { isAdministrator } = require('../../utils/permissions');
 const {
   sendIntroDm,
   getIntroDmStatus,
   PROMPT_TYPES,
   enqueueJoinIntroDmCandidates,
   processIntroDmQueue
-} = require('../modules/introDm');
+} = require('./introDm');
 const {
   backfillIntroProfiles,
   getIntroProfileStatus,
   cleanupIntroProfiles,
   rebuildIntroProfiles
-} = require('../shared/introProfiles');
-const { backfillGuildMembers, getUsersWithoutIntroOlderThan } = require('../modules/guildMembers');
+} = require('../../shared/introProfiles');
+const { backfillGuildMembers, getUsersWithoutIntroOlderThan } = require('../../modules/guildMembers');
 const {
   createIntroReactionSetup,
   listIntroReactions,
   clearIntroReactions,
   backfillIntroReactions,
   formatSavedEmoji: formatSavedIntroEmoji
-} = require('../plugins/intro/introReactions');
+} = require('./introReactions');
 
 module.exports = {
   data: new SlashCommandBuilder()
