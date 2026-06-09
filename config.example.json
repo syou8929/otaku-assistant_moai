@@ -1,6 +1,7 @@
 {
   "plugins": {
-    "welcome": { "enabled": true }
+    "welcome": { "enabled": true },
+    "entrance-guide": { "enabled": true }
   },
   "entranceChannelId": "YOUR_ENTRANCE_CHANNEL_ID",
   "timelineChannelId": "YOUR_TIMELINE_CHANNEL_ID",

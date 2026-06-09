@@ -5,7 +5,7 @@ const { Client, GatewayIntentBits } = require('discord.js');
 const { loadConfig } = require('../src/config/loadConfig');
 const { createDatabase } = require('../src/db/database');
 const { createLogger } = require('../src/services/logger');
-const { postEntranceGuide } = require('../src/modules/entranceGuide');
+const { postEntranceGuide } = require('../src/plugins/entrance-guide/guide');
 
 async function main() {
   const logger = createLogger('post-entrance-guide');

@@ -1,7 +1,6 @@
 const resolveCommand = require('./resolve');
 const unresolveCommand = require('./unresolve');
 const profileCommand = require('./profile');
-const guidePostCommand = require('./guidePost');
 const maintenanceCommand = require('./maintenance');
 const introCommand = require('./intro');
 const animeCommand = require('./anime');
@@ -10,7 +9,6 @@ const list = [
   resolveCommand,
   unresolveCommand,
   profileCommand,
-  guidePostCommand,
   maintenanceCommand,
   introCommand,
   animeCommand

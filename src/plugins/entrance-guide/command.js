@@ -1,5 +1,5 @@
 const { ChannelType, SlashCommandBuilder } = require('discord.js');
-const { isAdministrator } = require('../utils/permissions');
+const { isAdministrator } = require('../../utils/permissions');
 
 module.exports = {
   data: new SlashCommandBuilder()
