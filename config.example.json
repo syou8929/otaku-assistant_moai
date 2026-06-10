@@ -7,7 +7,8 @@
     "intro": { "enabled": true },
     "llm": { "enabled": true },
     "anime": { "enabled": true },
-    "timeline-relay": { "enabled": true }
+    "timeline-relay": { "enabled": true },
+    "reminder": { "enabled": true }
   },
   "entranceChannelId": "YOUR_ENTRANCE_CHANNEL_ID",
   "timelineChannelId": "YOUR_TIMELINE_CHANNEL_ID",

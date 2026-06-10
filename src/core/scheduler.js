@@ -282,8 +282,10 @@ function createScheduler({ db, logger }) {
       const next = nextCronRun(job.cron);
 
       if (error) {
-        statements.markStatus.run('pending', finished, error.message, job.id);
-        statements.updateRunAt.run(next.toISOString(), job.id);
+        sqlite.transaction(() => {
+          statements.markStatus.run('pending', finished, error.message, job.id);
+          statements.updateRunAt.run(next.toISOString(), job.id);
+        })();
       } else {
         statements.reschedule.run(next.toISOString(), finished, job.id);
       }
