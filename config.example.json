@@ -20,7 +20,8 @@
       "enabled": true,
       "portalChannelId": "YOUR_PIN_PORTAL_CHANNEL_ID",
       "sources": ["YOUR_PUBLIC_CHANNEL_OR_CATEGORY_ID"]
-    }
+    },
+    "archive-search": { "enabled": true }
   },
   "entranceChannelId": "YOUR_ENTRANCE_CHANNEL_ID",
   "timelineChannelId": "YOUR_TIMELINE_CHANNEL_ID",
