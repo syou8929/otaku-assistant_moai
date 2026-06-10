@@ -430,7 +430,10 @@ function loadConfig(configPath) {
     vcListenOnlyChannelIds: ensureArray(parsed.vcListenOnlyChannelIds || [], 'vcListenOnlyChannelIds'),
     globalHashtagRoutes: ensureGlobalHashtagRoutes(parsed.globalHashtagRoutes, 'globalHashtagRoutes'),
     twitterMedia: ensureTwitterMediaConfig(parsed.twitterMedia),
-    plugins: ensurePluginsConfig(parsed.plugins)
+    plugins: ensurePluginsConfig(parsed.plugins),
+    notifications: parsed.notifications && typeof parsed.notifications === 'object'
+      ? parsed.notifications
+      : {}
   };
 }
 

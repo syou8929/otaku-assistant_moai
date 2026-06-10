@@ -1,4 +1,7 @@
 {
+  "notifications": {
+    "quietHours": { "start": "23:00", "end": "07:00" }
+  },
   "plugins": {
     "welcome": { "enabled": true },
     "entrance-guide": { "enabled": true },

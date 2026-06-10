@@ -1,5 +1,6 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { parseTimeSpec } = require('./timeSpec');
+const { isQuietTime, deferUntilQuietEnd } = require('../../shared/notifyPolicy');
 
 /**
  * リマインダーの作成・配達・操作（snooze/done/cancel）のライフサイクル。
@@ -97,6 +98,24 @@ async function deliver(payload, ctx) {
 
   if (!reminder || reminder.status === 'cancelled' || reminder.status === 'done') {
     return; // lazy cancel: 行が無効化済みなら配達しない
+  }
+
+  // 通知統治: quiet hours 中の配達は静音明けへ繰り延べ（人を起こさない）。
+  // ユーザーが明示した時刻も対象になるため config 未設定なら無効（既定）。
+  if (isQuietTime(ctx.config)) {
+    const deferredTo = deferUntilQuietEnd(ctx.config);
+    ctx.db.reminder.setRunAt(reminder.id, deferredTo);
+    ctx.scheduler.schedule({
+      plugin: 'reminder',
+      type: 'deliver',
+      payload: { reminderId: reminder.id },
+      runAt: deferredTo
+    });
+    ctx.logger.info('Reminder deferred by quiet hours', {
+      reminderId: reminder.id,
+      deferredTo: deferredTo.toISOString()
+    });
+    return;
   }
 
   const message = buildDeliveryMessage(reminder);
