@@ -1,7 +1,4 @@
-const { handleWelcomeReactionSetup } = require('../modules/welcomeReactions');
-const { handleIntroReactionSetup } = require('../modules/introReactions');
-const { handleAnimeReactionAdd } = require('../modules/anime');
-const { handleDeletableMessageReaction } = require('../modules/deletableMessages');
+const { handleDeletableMessageReaction } = require('../shared/deletableMessages');
 
 module.exports = {
   async execute(reaction, user) {
@@ -10,43 +7,11 @@ module.exports = {
     try {
       const handledDeletion = await handleDeletableMessageReaction(reaction, user);
       if (handledDeletion) {
-        return;
+        // true を返して以降のハンドラ（anime@110 等）を停止する（旧チェーンのゲートと同じ）
+        return true;
       }
     } catch (error) {
       client?.logger?.error?.('Failed to handle deletable message reaction', {
-        messageId: reaction.message?.id || null,
-        channelId: reaction.message?.channelId || null,
-        userId: user?.id || null,
-        error: error.message
-      });
-    }
-
-    try {
-      await handleWelcomeReactionSetup(reaction, user);
-    } catch (error) {
-      client?.logger?.error?.('Failed to handle messageReactionAdd', {
-        messageId: reaction.message?.id || null,
-        channelId: reaction.message?.channelId || null,
-        userId: user?.id || null,
-        error: error.message
-      });
-    }
-
-    try {
-      await handleIntroReactionSetup(reaction, user);
-    } catch (error) {
-      client?.logger?.error?.('Failed to handle intro messageReactionAdd', {
-        messageId: reaction.message?.id || null,
-        channelId: reaction.message?.channelId || null,
-        userId: user?.id || null,
-        error: error.message
-      });
-    }
-
-    try {
-      await handleAnimeReactionAdd(reaction, user);
-    } catch (error) {
-      client?.logger?.error?.('Failed to handle anime messageReactionAdd', {
         messageId: reaction.message?.id || null,
         channelId: reaction.message?.channelId || null,
         userId: user?.id || null,

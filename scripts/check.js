@@ -34,24 +34,70 @@ for (const filePath of files) {
   execFileSync(process.execPath, ['--check', filePath], { stdio: 'inherit' });
 }
 
+// require 解決の検証: エントリポイント以外の src/ 全モジュールをロードする。
+// node --check は構文のみで、壊れた require パス（モジュール移動の取りこぼし）を
+// 検出できないため。index.js は bot 起動、registerCommands.js は Discord API を
+// require 時に呼ぶため除外する。
+const requireEntryPoints = new Set([
+  path.join(projectRoot, 'src', 'index.js'),
+  path.join(projectRoot, 'src', 'registerCommands.js')
+]);
+const srcPrefix = path.join(projectRoot, 'src') + path.sep;
+
+for (const filePath of files) {
+  if (!filePath.startsWith(srcPrefix) || requireEntryPoints.has(filePath)) {
+    continue;
+  }
+
+  require(filePath);
+}
+
 const { createDatabase } = require(path.join(projectRoot, 'src', 'db', 'database'));
 const {
   ANIME_QUOTES_PATH,
   validateAnimeQuoteDatabase
-} = require(path.join(projectRoot, 'src', 'modules', 'anime', 'animeQuoteMessages'));
+} = require(path.join(projectRoot, 'src', 'plugins', 'anime', 'animeQuoteMessages'));
 const commands = require(path.join(projectRoot, 'src', 'commands'));
+const { discoverPluginManifests } = require(path.join(projectRoot, 'src', 'core', 'pluginLoader'));
+const pluginManifests = discoverPluginManifests(path.join(projectRoot, 'src', 'plugins'));
+const pluginCommands = pluginManifests.flatMap((manifest) => manifest.commands || []);
+
 const tempDatabasePath = path.join(os.tmpdir(), `otaku-assistant-check-${process.pid}.db`);
 const database = createDatabase(tempDatabasePath);
+
+// per-plugin migrations / repository の SQL を一時DBで実行検証（有効/無効を問わず全件）
+for (const manifest of pluginManifests) {
+  manifest.migrations?.(database.sqlite);
+  manifest.repository?.(database.sqlite);
+}
+
 database.sqlite.close();
 fs.rmSync(tempDatabasePath, { force: true });
 fs.rmSync(`${tempDatabasePath}-shm`, { force: true });
 fs.rmSync(`${tempDatabasePath}-wal`, { force: true });
 
-for (const command of commands.list.filter((entry) => entry.enabled !== false)) {
+const allCommands = [...commands.list, ...pluginCommands].filter((entry) => entry.enabled !== false);
+
+for (const command of allCommands) {
   const optionCount = Array.isArray(command?.data?.options) ? command.data.options.length : 0;
   if (optionCount > 25) {
     throw new Error(`Command ${command.data?.name || 'unknown'} has too many top-level options: ${optionCount}`);
   }
+}
+
+const { GatewayIntentBits } = require('discord.js');
+for (const manifest of pluginManifests) {
+  for (const intent of manifest.intents || []) {
+    if (GatewayIntentBits[intent] === undefined) {
+      throw new Error(`Plugin ${manifest.name} declares unknown intent "${intent}"`);
+    }
+  }
+}
+
+const commandNames = allCommands.map((command) => command.data.name);
+const duplicateNames = commandNames.filter((name, index) => commandNames.indexOf(name) !== index);
+if (duplicateNames.length > 0) {
+  throw new Error(`Duplicate command names across core and plugins: ${duplicateNames.join(', ')}`);
 }
 
 const configExample = JSON.parse(fs.readFileSync(path.join(projectRoot, 'config.example.json'), 'utf8'));
@@ -64,3 +110,4 @@ if (!animeQuoteValidation.ok) {
 }
 
 console.log(`Checked ${files.length} JavaScript files.`);
+console.log(`Validated ${pluginManifests.length} plugin manifest(s): ${pluginManifests.map((manifest) => manifest.name).join(', ') || '(none)'}`);

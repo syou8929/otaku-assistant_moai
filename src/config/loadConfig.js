@@ -299,6 +299,27 @@ function ensureAnnictConfig(value) {
   };
 }
 
+function ensurePluginsConfig(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {};
+  }
+
+  const result = {};
+
+  for (const [name, entry] of Object.entries(value)) {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      throw new Error(`plugins.${name} must be an object`);
+    }
+
+    result[name] = {
+      ...entry,
+      enabled: entry.enabled === undefined ? undefined : entry.enabled !== false
+    };
+  }
+
+  return result;
+}
+
 function loadConfig(configPath) {
   if (!process.env.DISCORD_TOKEN) {
     throw new Error('DISCORD_TOKEN is missing in .env');
@@ -408,7 +429,8 @@ function loadConfig(configPath) {
     botHashtagRoutes: ensureBotHashtagRoutes(parsed.botHashtagRoutes, 'botHashtagRoutes'),
     vcListenOnlyChannelIds: ensureArray(parsed.vcListenOnlyChannelIds || [], 'vcListenOnlyChannelIds'),
     globalHashtagRoutes: ensureGlobalHashtagRoutes(parsed.globalHashtagRoutes, 'globalHashtagRoutes'),
-    twitterMedia: ensureTwitterMediaConfig(parsed.twitterMedia)
+    twitterMedia: ensureTwitterMediaConfig(parsed.twitterMedia),
+    plugins: ensurePluginsConfig(parsed.plugins)
   };
 }
 

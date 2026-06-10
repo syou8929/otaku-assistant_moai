@@ -1,4 +1,4 @@
-const { markGuildMemberLeft } = require('../modules/guildMembers');
+const { markGuildMemberLeft } = require('../shared/guildMembers');
 
 module.exports = {
   async execute(member) {

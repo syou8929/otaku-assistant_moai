@@ -1,134 +1,31 @@
-const { relayTweetMessage, relayGlobalHashtagMessage, handleReplyBasedGlobalHashtagRoute } = require('../modules/timelineRelay');
-const { applyWelcomeReactionsToMessage } = require('../modules/welcomeReactions');
-const { saveMessageToArchive } = require('../modules/messageArchive');
-const { handleLlmMessage } = require('../modules/llm');
-const { handleIntroDmMessage } = require('../modules/introDm');
-const { saveIntroProfileFromMessage } = require('../modules/introProfiles');
-const { handleAnimeWatchedPromptReply } = require('../modules/anime');
+const { saveMessageToArchive } = require('../shared/messageArchive');
+const { saveIntroProfileFromMessage } = require('../shared/introProfiles');
 
-module.exports = {
-  async execute(message) {
-    const client = message.client;
-
-    try {
-      const handledIntroDm = await handleIntroDmMessage(message);
-      if (handledIntroDm) {
-        return;
-      }
-    } catch (error) {
-      client.logger.error('Failed to handle intro DM message', {
-        messageId: message.id,
-        channelId: message.channelId,
-        error: error.message
-      });
+/**
+ * 旧 execute() の直列チェーンをステップ単位の router 登録へ分解したもの。
+ * 実行順は priority 昇順で旧チェーンの並びを保存する。
+ * - true を返すステップ（旧 early-return）は以降のステップを停止する
+ * - 例外は router が隔離・記録するため、旧ステップ内 try/catch と同じ
+ *   「失敗しても次のステップへ進む」継続セマンティクスになる
+ * これにより llm / anime / timeline-relay を個別にプラグインへ抽出できる。
+ */
+const steps = [
+  {
+    name: 'archive',
+    priority: 100,
+    handle: async (message) => {
+      await saveMessageToArchive(message.client, message);
     }
-
-    try {
-      await saveMessageToArchive(client, message);
-    } catch (error) {
-      client.logger.error('Archive save failed', {
-        messageId: message.id,
-        channelId: message.channelId,
-        error: error.message
-      });
-    }
-
-    try {
-      await saveIntroProfileFromMessage(client, message);
-    } catch (error) {
-      client.logger.error('Intro profile save failed', {
-        messageId: message.id,
-        channelId: message.channelId,
-        error: error.message
-      });
-    }
-
-    try {
-      await applyWelcomeReactionsToMessage(message);
-    } catch (error) {
-      client.logger.error('Failed to apply welcome reactions', {
-        messageId: message.id,
-        channelId: message.channelId,
-        error: error.message
-      });
-    }
-
-    try {
-      const handledAnimeWatchedPromptReply = await handleAnimeWatchedPromptReply(message);
-      if (handledAnimeWatchedPromptReply) {
-        return;
-      }
-    } catch (error) {
-      client.logger.error('Failed to handle anime watched prompt reply', {
-        messageId: message.id,
-        channelId: message.channelId,
-        error: error.message
-      });
-    }
-
-    try {
-      await handleLlmMessage(message);
-    } catch (error) {
-      client.logger.error('Failed to handle LLM message trigger', {
-        messageId: message.id,
-        channelId: message.channelId,
-        error: error.message
-      });
-    }
-
-    try {
-      const handledReplyRoute = await handleReplyBasedGlobalHashtagRoute(message, {
-        config: client.appConfig,
-        db: client.db,
-        logger: client.logger
-      });
-      if (handledReplyRoute) {
-        return;
-      }
-    } catch (error) {
-      client.logger.error('Failed to handle reply-based hashtag route', {
-        messageId: message.id,
-        channelId: message.channelId,
-        error: error.message
-      });
-    }
-
-    if (message.inGuild() && message.channel?.isThread?.()) {
-      client.logger.info('messageCreate received in thread', {
-        messageId: message.id,
-        channelId: message.channelId,
-        parentId: String(message.channel.parentId || ''),
-        authorId: message.author?.id || null
-      });
-
-      try {
-        await relayTweetMessage(message, {
-          config: client.appConfig,
-          db: client.db,
-          logger: client.logger
-        });
-      } catch (error) {
-        client.logger.error('Failed to handle messageCreate tweet relay', {
-          messageId: message.id,
-          channelId: message.channelId,
-          parentId: String(message.channel.parentId || ''),
-          error: error.message
-        });
-      }
-    }
-
-    try {
-      await relayGlobalHashtagMessage(message, {
-        config: client.appConfig,
-        db: client.db,
-        logger: client.logger
-      });
-    } catch (error) {
-      client.logger.error('Failed to handle global hashtag relay', {
-        messageId: message.id,
-        channelId: message.channelId,
-        error: error.message
-      });
+  },
+  {
+    name: 'intro-profile',
+    priority: 101,
+    handle: async (message) => {
+      await saveIntroProfileFromMessage(message.client, message);
     }
   }
+];
+
+module.exports = {
+  steps
 };

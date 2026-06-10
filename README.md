@@ -135,6 +135,10 @@ Copy [config.example.json](config.example.json) to `config.json` and replace eve
 
 Important sections:
 
+- `plugins`: Per-plugin enable/disable overrides (the fork's "loadout"). Each key
+  matches a folder under `src/plugins/` (e.g. `"welcome": { "enabled": false }`).
+  During the strangler-fig migration every migrated plugin defaults to ON, so a
+  config without this block keeps current behavior unchanged.
 - `entranceChannelId`: Channel where the entrance guide can be posted.
 - `timelineChannelId`: Main timeline relay destination.
 - `introChannelId`: Self-introduction channel. Intro profiles and VC cards read from here.
@@ -396,6 +400,41 @@ Only run `npm run register-commands` when command definitions changed or after i
 - VC card keeps stale users: Ensure GuildVoiceStates intent is enabled; periodic reconciliation should also correct stale cards.
 - VC status text does not show: discord.js/API support may not expose the status field in your runtime. Check `vc profile status text resolved` logs.
 - Native modules fail during install: `better-sqlite3` may require a working Node build toolchain on some platforms.
+
+## Architecture (flat base + detachable plugins)
+
+The codebase is organized in three layers (design spec:
+[docs/superpowers/specs/2026-06-02-flat-base-plugin-architecture-design.md](docs/superpowers/specs/2026-06-02-flat-base-plugin-architecture-design.md)):
+
+```text
+src/
+  core/      bootstrap glue: eventRouter (one listener per Discord event,
+             priority dispatch, stop-on-true, per-handler isolation),
+             pluginLoader (discovery, enable resolution, dependsOn fail-fast,
+             topological init, ctx.services), ops (health/notify)
+  shared/    cross-feature services with no behavior of their own:
+             messageArchive, introProfiles, guildMembers, deletableMessages,
+             llmClient, userMemory, discordLinks (see src/shared/README.md)
+  plugins/   detachable features, one folder each: timeline-relay, anime,
+             question, intro, welcome, vc-profile, entrance-guide, llm.
+             Each declares a plugin.js manifest (commands / events with
+             priorities / intents / dependsOn / api / init / teardown) and
+             documents its removal footprint in blueprint.md
+```
+
+Plugins never import each other directly — cross-feature integration goes
+through registered hooks (`ctx.services['timeline-relay'].register…`) so that
+removing a plugin degrades the caller to a no-op instead of crashing.
+`/welcome`, `/intro`, `/anime`, `/resolve`, `/guide-post` etc. are registered
+by their plugins; `commands/` retains only cross-cutting legacy commands
+(`maintenance`) pending decomposition. Event priorities preserve the original
+chain order (e.g. messageCreate: intro@10 → welcome@40 → archive@100 →
+intro-profile@101 → anime@102 → llm@103 → relay@104-106).
+
+Remaining migration work is tracked in
+[docs/blueprints/dependency-map.md](docs/blueprints/dependency-map.md): per-plugin
+DB migrations/repositories (Stage D), config-as-schema + default-OFF loadouts +
+prune/scaffold tooling (Stage F), and the Armabot base-app neutralization.
 
 ## Development
 

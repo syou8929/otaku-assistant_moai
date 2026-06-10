@@ -1,56 +1,45 @@
-module.exports = {
-  async execute(message) {
-    const client = message.client;
-    const messageId = message?.id;
-    if (!client || !messageId) {
-      return;
-    }
+/**
+ * 旧 execute() の直列チェーンをステップ単位の router 登録へ分解したもの
+ * （events/messageCreate.js と同じ方式）。停止するステップは無い。
+ * llm_responses の掃除は llm プラグイン（messageDelete@101）、anime カードの
+ * 親メッセージ後始末は anime プラグイン（messageDelete@110）が行う。
+ */
+const steps = [
+  {
+    name: 'archive-cleanup',
+    priority: 100,
+    handle: async (message) => {
+      const client = message?.client;
+      const messageId = message?.id;
 
-    try {
+      if (!client || !messageId) {
+        return;
+      }
+
       client.db.archives.deleteMessage(messageId);
       client.db.introProfiles.deleteByMessageId(messageId);
       client.logger.info('Message archive deleted', {
         messageId,
         channelId: message.channelId || null
       });
-    } catch (error) {
-      client.logger.error('delete archive failed', {
-        messageId,
-        channelId: message.channelId || null,
-        error: error.message
-      });
     }
+  },
+  {
+    name: 'deletable-cleanup',
+    priority: 102,
+    handle: async (message) => {
+      const client = message?.client;
+      const messageId = message?.id;
 
-    try {
-      client.db.llmResponses.deleteByMessageId(messageId);
-      client.logger.info('LLM response reference deleted', {
-        messageId
-      });
-    } catch (error) {
-      client.logger.error('delete llm response reference failed', {
-        messageId,
-        error: error.message
-      });
-    }
+      if (!client || !messageId) {
+        return;
+      }
 
-    try {
       client.db.deletableMessages.delete(messageId);
-    } catch (error) {
-      client.logger.error('delete deletable message reference failed', {
-        messageId,
-        error: error.message
-      });
-    }
-
-    try {
-      const { handleAnimeParentMessageDeleted } = require('../modules/anime');
-      await handleAnimeParentMessageDeleted(client, message);
-    } catch (error) {
-      client.logger.error('anime parent delete cleanup failed', {
-        messageId,
-        channelId: message.channelId || null,
-        error: error.message
-      });
     }
   }
+];
+
+module.exports = {
+  steps
 };

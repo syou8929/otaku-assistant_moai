@@ -1,12 +1,10 @@
-const { upsertGuildMember } = require('../modules/guildMembers');
-const { enqueueWelcomeJoinDm } = require('../modules/introDm');
+const { upsertGuildMember } = require('../shared/guildMembers');
 
 module.exports = {
   async execute(member) {
     const client = member.client;
     try {
       upsertGuildMember(client, member);
-      await enqueueWelcomeJoinDm(client, member);
     } catch (error) {
       client.logger.error('Failed to handle guildMemberAdd', {
         guildId: member.guild?.id || null,

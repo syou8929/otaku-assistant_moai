@@ -1,22 +1,13 @@
-const {
-  initializeVoiceProfileMappings,
-  rebuildVoiceProfileState,
-  startVoiceProfileReconciliation
-} = require('../modules/vcProfile');
 const pkg = require('../../package.json');
-const { getBotHealth } = require('../modules/ops/health');
-const { notifyOpsChannel } = require('../modules/ops/notify');
-const { startIntroDmQueueProcessor } = require('../modules/introDm');
-const { runAnimeOrphanScan } = require('../modules/anime');
-const { getAnnictAccessToken } = require('../modules/anime/annictClient');
+const { getBotHealth } = require('../core/ops/health');
+const { notifyOpsChannel } = require('../core/ops/notify');
 
 module.exports = {
   async execute(client) {
     client.db.deletableMessages.deleteExpired();
-    await initializeVoiceProfileMappings(client);
-    await rebuildVoiceProfileState(client, { reason: 'ready_resync' });
-    startVoiceProfileReconciliation(client);
 
+    // VC プロフィール初期化は vc-profile プラグイン（clientReady@50）が先に実行済み。
+    // 以降の voiceProfileCategoryMap 読取は未ロード時 0 として扱われる。
     const health = getBotHealth(client);
     const globalHashtagRoutes = Object.entries(client.appConfig.globalHashtagRoutes || {});
 
@@ -51,29 +42,9 @@ module.exports = {
       maxParts: client.appConfig.timeline.shortMergeMaxParts
     });
 
-    client.logger.info('anime config loaded', {
-      enabled: client.appConfig.anime.enabled,
-      provider: client.appConfig.anime.provider,
-      channelId: client.appConfig.anime.channelId,
-      autoPostOnCastLookup: client.appConfig.anime.autoPostOnCastLookup,
-      interestEmoji: client.appConfig.anime.interestEmoji,
-      watchedEmoji: client.appConfig.anime.watchedEmoji
-    });
+    // anime の config ログ・annict 警告・孤児スキャンは anime プラグイン（clientReady@105）が行う。
 
-    if (client.appConfig.anime.provider === 'annict' && !getAnnictAccessToken(client)) {
-      client.logger.warn('annict token missing', {
-        provider: client.appConfig.anime.provider,
-        accessTokenEnv: client.appConfig.annict.accessTokenEnv
-      });
-    }
-
-    await runAnimeOrphanScan(client).catch((error) => {
-      client.logger.error('anime orphan scan failed', {
-        error: error.message
-      });
-    });
-
-    startIntroDmQueueProcessor(client);
+    // introDm キュー処理の開始は intro プラグイン（clientReady@110）が行う。
 
     await notifyOpsChannel(client, [
       '✅ Otaku Assistant started / ready',

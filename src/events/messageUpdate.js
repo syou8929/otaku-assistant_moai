@@ -1,50 +1,24 @@
-const { updateTweetTimelineCard, handleRouteAddedOnMessageUpdate } = require('../modules/timelineRelay');
-const { saveMessageToArchive } = require('../modules/messageArchive');
-const { saveIntroProfileFromMessage } = require('../modules/introProfiles');
+const { saveMessageToArchive } = require('../shared/messageArchive');
+const { saveIntroProfileFromMessage } = require('../shared/introProfiles');
 
-module.exports = {
-  async execute(oldMessage, newMessage) {
-    const client = newMessage.client;
-
-    try {
+/**
+ * 旧 execute() の直列チェーンをステップ単位の router 登録へ分解したもの
+ * （events/messageCreate.js と同じ方式）。停止するステップは無い。
+ * archive と intro-profile は partial fetch を共有するため 1 ステップに束ねる。
+ */
+const steps = [
+  {
+    name: 'archive-update',
+    priority: 100,
+    handle: async (oldMessage, newMessage) => {
+      const client = newMessage.client;
       const resolvedMessage = newMessage.partial ? await newMessage.fetch() : newMessage;
       await saveMessageToArchive(client, resolvedMessage);
       await saveIntroProfileFromMessage(client, resolvedMessage);
-    } catch (error) {
-      client.logger.error('Archive update failed', {
-        messageId: newMessage.id,
-        channelId: newMessage.channelId,
-        error: error.message
-      });
-    }
-
-    try {
-      await updateTweetTimelineCard(oldMessage, newMessage, {
-        config: client.appConfig,
-        db: client.db,
-        logger: client.logger
-      });
-    } catch (error) {
-      client.logger.error('Failed to handle messageUpdate', {
-        messageId: newMessage.id,
-        channelId: newMessage.channelId,
-        parentId: String(newMessage.channel?.parentId || ''),
-        error: error.message
-      });
-    }
-
-    try {
-      await handleRouteAddedOnMessageUpdate(oldMessage, newMessage, {
-        config: client.appConfig,
-        db: client.db,
-        logger: client.logger
-      });
-    } catch (error) {
-      client.logger.error('Failed to handle messageUpdate route-added relay', {
-        messageId: newMessage.id,
-        channelId: newMessage.channelId,
-        error: error.message
-      });
     }
   }
+];
+
+module.exports = {
+  steps
 };

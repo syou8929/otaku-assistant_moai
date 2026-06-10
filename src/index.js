@@ -1,15 +1,51 @@
 require('dotenv').config();
 
 const path = require('node:path');
-const { createBotClient } = require('./client');
+const { createBotClient, assertPluginIntentsCovered } = require('./client');
 const { loadConfig } = require('./config/loadConfig');
 const { createDatabase } = require('./db/database');
 const { createLogger } = require('./services/logger');
-const { notifyOpsChannel } = require('./modules/ops/notify');
+const { notifyOpsChannel } = require('./core/ops/notify');
+const { createEventRouter } = require('./core/eventRouter');
+const {
+  discoverPluginManifests,
+  resolveEnabledManifests,
+  assertDependenciesSatisfied,
+  sortByDependencies,
+  loadPlugins
+} = require('./core/pluginLoader');
 
 const bootstrapLogger = createLogger('app');
 let activeClient = null;
+let activePluginRuntime = null;
 let shuttingDown = false;
+
+// ハンドラ失敗の ops 通知は handler 単位で 10 分に 1 回へ抑制する
+//（例: DB 障害時に messageCreate のたび通知が連射されるのを防ぐ）
+const OPS_HANDLER_ERROR_THROTTLE_MS = 10 * 60 * 1000;
+const opsHandlerErrorNotifiedAt = new Map();
+
+function notifyHandlerError(error, { event, handler }) {
+  if (!activeClient?.isReady?.()) {
+    return;
+  }
+
+  const throttleKey = `${event}:${handler}`;
+  const now = Date.now();
+  const lastNotifiedAt = opsHandlerErrorNotifiedAt.get(throttleKey) || 0;
+
+  if (now - lastNotifiedAt < OPS_HANDLER_ERROR_THROTTLE_MS) {
+    return;
+  }
+
+  opsHandlerErrorNotifiedAt.set(throttleKey, now);
+  void notifyOpsChannel(activeClient, [
+    '⚠️ Event handler failed',
+    `- Event: ${event}`,
+    `- Handler: ${handler}`,
+    `- Error: ${error?.message || String(error)}`
+  ].join('\n')).catch(() => null);
+}
 
 async function notifyFatal(title, error) {
   if (!activeClient?.isReady?.()) {
@@ -39,6 +75,8 @@ async function shutdown(signal, exitCode = 0) {
     ].join('\n'));
   }
 
+  activePluginRuntime?.teardown();
+
   try {
     activeClient?.destroy();
   } catch (error) {
@@ -56,12 +94,38 @@ async function main() {
   const appConfig = loadConfig(configPath);
   const database = createDatabase(path.resolve(process.cwd(), 'data', 'otaku-assistant.db'));
 
+  const eventRouter = createEventRouter({
+    logger: bootstrapLogger,
+    onError: notifyHandlerError
+  });
+
   const client = createBotClient({
     appConfig,
     database,
-    logger: bootstrapLogger
+    logger: bootstrapLogger,
+    eventRouter
   });
   activeClient = client;
+
+  const manifests = discoverPluginManifests(path.resolve(__dirname, 'plugins'));
+  const enabledManifests = sortByDependencies(
+    resolveEnabledManifests(manifests, appConfig.plugins)
+  );
+  assertDependenciesSatisfied(enabledManifests);
+  activePluginRuntime = loadPlugins({
+    manifests: enabledManifests,
+    client,
+    db: database,
+    config: appConfig,
+    logger: bootstrapLogger,
+    eventRouter
+  });
+  assertPluginIntentsCovered(client, enabledManifests);
+  eventRouter.attach(client);
+  bootstrapLogger.info('Plugins loaded', {
+    discovered: manifests.map((manifest) => manifest.name),
+    enabled: activePluginRuntime.loaded
+  });
 
   client.once('shardError', (error) => {
     bootstrapLogger.error('Discord shard error', { error: error.message });
