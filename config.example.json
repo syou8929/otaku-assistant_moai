@@ -27,6 +27,7 @@
     "archive-search": { "enabled": true },
     "backup": { "enabled": true, "keep": 14 },
     "telemetry": { "enabled": true },
+    "faq": { "enabled": true },
     "decision-log": { "enabled": true, "portalChannelId": "YOUR_DECISIONS_CHANNEL_ID" },
     "ref-board": { "enabled": true, "boardChannelId": "YOUR_REF_BOARD_CHANNEL_ID" },
     "news-digest": {

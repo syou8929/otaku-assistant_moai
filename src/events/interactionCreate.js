@@ -1,5 +1,20 @@
 module.exports = {
   async execute(interaction) {
+    if (interaction.isAutocomplete()) {
+      const autocompleteCommand = interaction.client.commands.get(interaction.commandName);
+
+      if (autocompleteCommand?.autocomplete) {
+        await autocompleteCommand.autocomplete(interaction).catch((error) => {
+          interaction.client.logger.warn('Autocomplete handler failed', {
+            commandName: interaction.commandName,
+            error: error.message
+          });
+        });
+      }
+
+      return;
+    }
+
     if (!interaction.isChatInputCommand() && !interaction.isContextMenuCommand()) {
       // コンポーネント操作は各プラグインが interactionCreate@<100（core:components@80 等）で
       // 登録処理する（spec §6）。
