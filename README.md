@@ -401,6 +401,12 @@ Only run `npm run register-commands` when command definitions changed or after i
 - VC status text does not show: discord.js/API support may not expose the status field in your runtime. Check `vc profile status text resolved` logs.
 - Native modules fail during install: `better-sqlite3` may require a working Node build toolchain on some platforms.
 
+## Feature Guide (日本語)
+
+新機能（reminder / pin-portal / timeline-barrier / archive-search / decision-log ほか）の
+利用者向け説明書は [docs/features-guide.md](docs/features-guide.md) にあります。
+機能の有効化（loadout）・コマンド一覧・管理者向けトラブルシュートを含みます。
+
 ## Architecture (flat base + detachable plugins)
 
 The codebase is organized in three layers (design spec:
@@ -411,16 +417,28 @@ src/
   core/      bootstrap glue: eventRouter (one listener per Discord event,
              priority dispatch, stop-on-true, per-handler isolation),
              pluginLoader (discovery, enable resolution, dependsOn fail-fast,
-             topological init, ctx.services), ops (health/notify)
+             topological init, ctx.services, component routing @80,
+             error safety net), scheduler (SQLite-persisted one-shot/cron
+             jobs surviving restarts), telemetry (aggregate-only usage
+             counters), ops (health/notify)
   shared/    cross-feature services with no behavior of their own:
              messageArchive, introProfiles, guildMembers, deletableMessages,
-             llmClient, userMemory, discordLinks (see src/shared/README.md)
-  plugins/   detachable features, one folder each: timeline-relay, anime,
-             question, intro, welcome, vc-profile, entrance-guide, llm.
+             llmClient, userMemory, discordLinks, notifyPolicy (quiet hours)
+             (see src/shared/README.md)
+  plugins/   detachable features, one folder each. Migrated: timeline-relay
+             (+ barrier), anime, question, intro, welcome, vc-profile,
+             entrance-guide, llm. New (default OFF): reminder, pin-portal,
+             archive-search, decision-log, muse-gacha, news-digest,
+             ref-board, telemetry; backup is default ON (safety device).
              Each declares a plugin.js manifest (commands / events with
-             priorities / intents / dependsOn / api / init / teardown) and
-             documents its removal footprint in blueprint.md
+             priorities / intents / dependsOn / api / jobs (scheduler
+             handlers) / components ({prefix, handle} routed by customId
+             first segment) / migrations + repository (per-plugin tables
+             mounted as db[name]) / init / teardown) and documents its
+             removal footprint in blueprint.md
 ```
+
+User-facing manual for the new features: [docs/features-guide.md](docs/features-guide.md).
 
 Plugins never import each other directly — cross-feature integration goes
 through registered hooks (`ctx.services['timeline-relay'].register…`) so that

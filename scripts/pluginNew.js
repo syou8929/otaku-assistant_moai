@@ -40,10 +40,21 @@ const pluginJs = `module.exports = {
   events: {},
   // 他プラグインへ公開する API（ctx.services['${name}'] として見える）
   api: {},
+  // このプラグイン所有のテーブル（任意）: migrations(sqlite) を起動時に実行し、
+  // repository(sqlite) の戻り値を db['${name}'] としてマウントする
+  // migrations: require('./migrations'),
+  // repository: require('./repository'),
+  // スケジュールジョブ（任意）: handle(payload, ctx, job)。予約は ctx.scheduler から:
+  //   ctx.scheduler.schedule({ plugin: '${name}', type: 'x', payload, runAt })
+  //   ctx.scheduler.scheduleCron({ plugin: '${name}', type: 'x', cron: '0 9 * * *', key: 'k' })
+  // jobs: { x: async (payload, ctx) => {} },
+  // ボタン/セレクト/モーダルの受け口（任意）: customId は '${name}:action:args' 形式。
+  // 先頭セグメントが prefix に一致すると handle(interaction, ctx) が呼ばれる
+  // components: { prefix: '${name}', handle: async (interaction, ctx) => false },
   init(ctx) {
     // 起動時の初期化（login 前に同期実行される）。
     // interval や他プラグインへのフック登録はここで行う。
-    // ctx = { client, db, config, logger, services }
+    // ctx = { client, db, config, logger, services, scheduler }
   },
   teardown(ctx) {
     // shutdown 時の後始末（init で張った interval の解除など）

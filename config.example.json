@@ -1,4 +1,7 @@
 {
+  "notifications": {
+    "quietHours": { "start": "23:00", "end": "07:00" }
+  },
   "plugins": {
     "welcome": { "enabled": true },
     "entrance-guide": { "enabled": true },
@@ -7,7 +10,55 @@
     "intro": { "enabled": true },
     "llm": { "enabled": true },
     "anime": { "enabled": true },
-    "timeline-relay": { "enabled": true }
+    "timeline-relay": {
+      "enabled": true,
+      "barrier": {
+        "enabled": false,
+        "defaultSourceTier": 9,
+        "defaultDestinationTier": 0
+      }
+    },
+    "reminder": { "enabled": true },
+    "pin-portal": {
+      "enabled": true,
+      "portalChannelId": "YOUR_PIN_PORTAL_CHANNEL_ID",
+      "sources": ["YOUR_PUBLIC_CHANNEL_OR_CATEGORY_ID"]
+    },
+    "archive-search": { "enabled": true },
+    "backup": { "enabled": true, "keep": 14 },
+    "telemetry": { "enabled": true },
+    "faq": { "enabled": true },
+    "work-archive": { "enabled": true },
+    "decision-log": { "enabled": true, "portalChannelId": "YOUR_DECISIONS_CHANNEL_ID" },
+    "ref-board": { "enabled": true, "boardChannelId": "YOUR_REF_BOARD_CHANNEL_ID" },
+    "news-digest": {
+      "enabled": true,
+      "categories": {
+        "テック": {
+          "channelId": "YOUR_TECH_NEWS_CHANNEL_ID",
+          "feeds": [
+            { "name": "Hacker News", "url": "https://news.ycombinator.com/rss" },
+            { "name": "Publickey", "url": "https://www.publickey1.jp/atom.xml" }
+          ]
+        },
+        "AI": {
+          "channelId": "YOUR_AI_NEWS_CHANNEL_ID",
+          "feeds": [
+            { "name": "r/LocalLLaMA", "url": "https://www.reddit.com/r/LocalLLaMA/.rss" }
+          ]
+        }
+      },
+      "digestCron": "0 8 * * 1-5"
+    },
+    "muse-gacha": {
+      "enabled": true,
+      "pools": {
+        "MV": ["YOUTUBE_CHANNEL_ID_1"],
+        "モーショングラフィックス": ["YOUTUBE_CHANNEL_ID_2"]
+      },
+      "deliveryChannelId": "YOUR_INSPO_CHANNEL_ID",
+      "deliveryCron": "0 9 * * 1-5"
+    }
   },
   "entranceChannelId": "YOUR_ENTRANCE_CHANNEL_ID",
   "timelineChannelId": "YOUR_TIMELINE_CHANNEL_ID",

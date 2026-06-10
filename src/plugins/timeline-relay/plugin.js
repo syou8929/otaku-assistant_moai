@@ -8,6 +8,8 @@ const {
   updateQuestionTimelineCard
 } = require('./index');
 const { registerThreadTagApplier, registerHashtagPostHandler } = require('./hooks');
+const { isRelayAllowed, getBarrierConfig } = require('./barrier');
+const { barrierCommand } = require('./barrierCommand');
 
 function relayContext(client) {
   return {
@@ -24,13 +26,31 @@ module.exports = {
   enabledByDefault: true,
   dependsOn: [],
   intents: ['Guilds', 'GuildMessages', 'MessageContent'],
+  // barrier capability は config.plugins['timeline-relay'].barrier.enabled（既定 false）。
+  // 有効化すると deny-by-default で Tier 未割当ペアの中継が止まる（仕事フォーク向け）。
   capabilities: {},
-  commands: [],
+  migrations: require('./migrations'),
+  repository: require('./repository'),
+  commands: [barrierCommand],
   // 依存プラグイン（question / anime）が init(ctx) から使う公開面。
   api: {
     registerThreadTagApplier,
     registerHashtagPostHandler,
-    updateQuestionTimelineCard
+    updateQuestionTimelineCard,
+    // 情報の移動を行う他プラグイン（archive-search / digest 等）が同一の検査を使うための公開面
+    isRelayAllowed
+  },
+  init(ctx) {
+    barrierCommand.ctx = ctx;
+
+    const barrier = getBarrierConfig(ctx.config);
+
+    if (barrier.enabled && barrier.defaultSourceTier < barrier.defaultDestinationTier) {
+      ctx.logger.warn('Barrier misconfiguration: defaultSourceTier < defaultDestinationTier inverts deny-by-default', {
+        defaultSourceTier: barrier.defaultSourceTier,
+        defaultDestinationTier: barrier.defaultDestinationTier
+      });
+    }
   },
   events: {
     // 旧 events/threadCreate.js の全体（フォーラム新スレッドの relay）。

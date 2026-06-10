@@ -6,6 +6,7 @@ const { prepareAttachmentRelay } = require('./attachmentRelay');
 const { resolveTwitterMedia } = require('./twitterMediaResolver');
 const { enrichPostWithMusicLink } = require('./musicLinks');
 const { getThreadTagApplier, getHashtagPostHandler } = require('./hooks');
+const { isRelayAllowed, filterTargetsByBarrier, assertRelayAllowed } = require('./barrier');
 const { getRecentArchivedMessages } = require('../../shared/messageArchive');
 const { getMessageJumpUrl } = require('../../shared/discordLinks');
 const { getSilentRelayControl, parseRelayHashtagPrefixes } = require('../../utils/text');
@@ -747,7 +748,18 @@ function payloadHasMediaGallery(payload) {
   }
 }
 
-async function sendRelayMessage(destinationChannel, payload, logger, meta) {
+async function sendRelayMessage(destinationChannel, payload, logger, meta, guard = null) {
+  // 防御的最終検査: 送信前フィルタをすり抜けた違反ペアは静かに漏れず throw で失敗する
+  if (guard) {
+    await assertRelayAllowed({
+      sourceChannel: guard.sourceChannel,
+      destinationChannel,
+      db: guard.db,
+      config: guard.config,
+      client: guard.client
+    });
+  }
+
   logger.info('Relay send starting', {
     ...meta,
     hasComponents: Array.isArray(payload?.components) && payload.components.length > 0,
@@ -945,6 +957,24 @@ async function relayForumThread(thread, { config, db, logger }) {
       throw new Error('Timeline channel was not found or is not text-based');
     }
 
+    const barrierVerdict = await isRelayAllowed({
+      sourceChannel: thread,
+      destinationChannel: timelineChannel,
+      db,
+      config,
+      client: thread.client
+    });
+
+    if (!barrierVerdict.allowed) {
+      logger.warn('Barrier denied forum thread relay', {
+        threadId: thread.id,
+        destinationChannelId: String(config.timelineChannelId || ''),
+        sourceTier: barrierVerdict.sourceTier,
+        destinationTier: barrierVerdict.destinationTier
+      });
+      return;
+    }
+
     const { payload, cleanup } = await buildTimelinePayload(post, {
       config,
       forumType,
@@ -959,7 +989,7 @@ async function relayForumThread(thread, { config, db, logger }) {
         relayKind: forumType,
         sendPurpose: 'timeline:thread-primary-card-send',
         callsiteLabel: 'timeline:thread-create'
-      });
+      }, { sourceChannel: thread, db, config, client: thread.client });
     } finally {
       await cleanup();
     }
@@ -1094,7 +1124,14 @@ async function relayTweetMessage(message, { config, db, logger }) {
 
   const extractedPost = await extractThreadMessagePost(message, config, logger);
   const post = await enrichPostWithMusicLink(extractedPost, { db, logger });
-  const desiredTargets = getTweetDestinationTargets(post, config);
+  const desiredTargets = await filterTargetsByBarrier(getTweetDestinationTargets(post, config), {
+    sourceChannel: message.channel,
+    db,
+    config,
+    client: message.client,
+    logger,
+    callsite: 'relayTweetMessage'
+  });
   logger.info('Computed relay destinations', {
     sourceMessageId: message.id,
     destinations: desiredTargets
@@ -1200,7 +1237,7 @@ async function relayTweetMessage(message, { config, db, logger }) {
           relayKind: target.relayKind,
           sendPurpose: buildRelaySendPurpose(message, target),
           callsiteLabel: 'timeline:message-create'
-        });
+        }, { sourceChannel: message.channel, db, config, client: message.client });
         db.relays.upsertMessageRelayTarget({
           sourceMessageId: message.id,
           destinationChannelId: target.destinationChannelId,
@@ -1336,10 +1373,20 @@ async function updateTweetTimelineCard(oldMessage, newMessage, { config, db, log
 
   const extractedPost = await extractThreadMessagePost(message, config, logger);
   const post = await enrichPostWithMusicLink(extractedPost, { db, logger });
-  const desiredTargets = [
-    ...getTweetDestinationTargets(post, config),
-    ...getGlobalRouteDestinationTargets(post, config, message.channelId)
-  ];
+  const desiredTargets = await filterTargetsByBarrier(
+    [
+      ...getTweetDestinationTargets(post, config),
+      ...getGlobalRouteDestinationTargets(post, config, message.channelId)
+    ],
+    {
+      sourceChannel: message.channel,
+      db,
+      config,
+      client: message.client,
+      logger,
+      callsite: 'updateTweetTimelineCard'
+    }
+  );
   const desiredTargetByChannelId = new Map();
   for (const target of desiredTargets) {
     if (!target?.destinationChannelId || desiredTargetByChannelId.has(String(target.destinationChannelId))) {
@@ -1497,7 +1544,7 @@ async function updateTweetTimelineCard(oldMessage, newMessage, { config, db, log
           relayKind: target.relayKind,
           sendPurpose: 'timeline:missing-route-create-send',
           callsiteLabel: 'timeline:message-update'
-        });
+        }, { sourceChannel: message.channel, db, config, client: message.client });
       } finally {
         message.client.timelineRelayMessageInFlight.delete(relayInFlightKey);
       }
@@ -1544,6 +1591,26 @@ async function updateQuestionTimelineCard(thread, { config, db, logger, question
   const timelineChannel = await thread.guild.channels.fetch(config.timelineChannelId);
   if (!timelineChannel || !timelineChannel.isTextBased()) {
     throw new Error('Timeline channel was not found or is not text-based');
+  }
+
+  // バリア再検査: 初回 relay 後にソースが高 Tier へ再分類された場合、
+  // カード更新で機密内容が低 Tier タイムラインへ漏れるのを防ぐ（security review MEDIUM）。
+  const barrierVerdict = await isRelayAllowed({
+    sourceChannel: thread,
+    destinationChannel: timelineChannel,
+    db,
+    config,
+    client: thread.client
+  });
+
+  if (!barrierVerdict.allowed) {
+    logger.warn('Barrier denied question timeline card update', {
+      threadId: thread.id,
+      destinationChannelId: String(config.timelineChannelId || ''),
+      sourceTier: barrierVerdict.sourceTier,
+      destinationTier: barrierVerdict.destinationTier
+    });
+    return;
   }
 
   const timelineMessage = await timelineChannel.messages.fetch(relay.timelineMessageId).catch(() => null);
@@ -1827,8 +1894,17 @@ async function relayGlobalHashtagMessage(message, { config, db, logger }) {
     logger
   });
 
+  const barrierFilteredTargets = await filterTargetsByBarrier(destinationTargets, {
+    sourceChannel: message.channel,
+    db,
+    config,
+    client: message.client,
+    logger,
+    callsite: 'relayGlobalHashtagMessage'
+  });
+
   try {
-    for (const target of destinationTargets) {
+    for (const target of barrierFilteredTargets) {
       const existingRelay = db.relays.getMessageRelayTarget(message.id, target.destinationChannelId);
       if (existingRelay?.relayedMessageId) {
         if (isAnimeRouteMatched && String(target.destinationChannelId) === String(config.timelineChannelId || '')) {
@@ -1896,7 +1972,7 @@ async function relayGlobalHashtagMessage(message, { config, db, logger }) {
           relayKind: target.relayKind,
           sendPurpose: 'global_hashtag:relay-send',
           callsiteLabel: 'global-hashtag:message-create'
-        });
+        }, { sourceChannel: message.channel, db, config, client: message.client });
 
         db.relays.upsertMessageRelayTarget({
           sourceMessageId: message.id,
@@ -2114,7 +2190,16 @@ async function handleReplyBasedGlobalHashtagRoute(message, { config, db, logger 
     botMatchedRoutes: replyRouting.botMatchedRoutes
   });
 
-  if (!destinationTargets.length) {
+  const allowedDestinationTargets = await filterTargetsByBarrier(destinationTargets, {
+    sourceChannel: message.channel,
+    db,
+    config,
+    client: message.client,
+    logger,
+    callsite: 'handleReplyBasedGlobalHashtagRoute'
+  });
+
+  if (!allowedDestinationTargets.length) {
     logger.info('posthoc hashtag relay finished', {
       sourceMessageId: message.id,
       replyTargetMessageId: targetMessage.id,
@@ -2137,7 +2222,7 @@ async function handleReplyBasedGlobalHashtagRoute(message, { config, db, logger 
   let skippedCount = 0;
 
   try {
-    for (const target of destinationTargets) {
+    for (const target of allowedDestinationTargets) {
       const existingRelay = db.relays.getMessageRelayTarget(targetMessage.id, target.destinationChannelId);
       if (existingRelay?.relayedMessageId) {
         relayedRouteMessageIds[target.destinationChannelId] = existingRelay.relayedMessageId;
@@ -2178,7 +2263,7 @@ async function handleReplyBasedGlobalHashtagRoute(message, { config, db, logger 
           relayKind: target.relayKind,
           sendPurpose: 'reply_global_hashtag:relay-send',
           callsiteLabel: 'reply-global-hashtag:message-create'
-        });
+        }, { sourceChannel: message.channel, db, config, client: message.client });
         sentCount += 1;
         relayedRouteMessageIds[target.destinationChannelId] = sentMessage.id;
         if (String(target.destinationChannelId) === String(config.timelineChannelId || '')) {

@@ -23,6 +23,7 @@
 | `guildMembers.js` | `modules/guildMembers/` から昇格 | intro / introProfiles / events |
 | `messageArchive/` | `modules/messageArchive/` から昇格 | llm / timelineRelay / events |
 | `deletableMessages.js` | `modules/deletableMessages/` から昇格 | anime / events |
+| `notifyPolicy.js` | 通知統治（quiet hours 判定・静音明けへの繰り延べ）。DM/メンション系通知の共有規約 |
 | `discordLinks.js` | `services/discordLinks.js` から昇格 | entrance-guide / timelineRelay / anime |
 
 これで dependency-map.md §2 の shared 昇格は完了。`src/modules/` は全機能の

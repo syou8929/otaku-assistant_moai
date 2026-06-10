@@ -1,7 +1,23 @@
 module.exports = {
   async execute(interaction) {
-    if (!interaction.isChatInputCommand()) {
-      // コンポーネント操作は各プラグインが interactionCreate@<100 で登録処理する（spec §6）。
+    if (interaction.isAutocomplete()) {
+      const autocompleteCommand = interaction.client.commands.get(interaction.commandName);
+
+      if (autocompleteCommand?.autocomplete) {
+        await autocompleteCommand.autocomplete(interaction).catch((error) => {
+          interaction.client.logger.warn('Autocomplete handler failed', {
+            commandName: interaction.commandName,
+            error: error.message
+          });
+        });
+      }
+
+      return;
+    }
+
+    if (!interaction.isChatInputCommand() && !interaction.isContextMenuCommand()) {
+      // コンポーネント操作は各プラグインが interactionCreate@<100（core:components@80 等）で
+      // 登録処理する（spec §6）。
       return;
     }
 
@@ -28,6 +44,8 @@ module.exports = {
     if (!command) {
       return;
     }
+
+    interaction.client.telemetry?.increment('command', interaction.commandName);
 
     try {
       interaction.client.logger.info('Command execution started', {
