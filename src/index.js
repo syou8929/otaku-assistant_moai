@@ -8,6 +8,7 @@ const { createLogger } = require('./services/logger');
 const { notifyOpsChannel } = require('./core/ops/notify');
 const { createEventRouter } = require('./core/eventRouter');
 const { createScheduler } = require('./core/scheduler');
+const { createTelemetry } = require('./core/telemetry');
 const {
   discoverPluginManifests,
   resolveEnabledManifests,
@@ -102,7 +103,8 @@ async function main() {
     onError: notifyHandlerError
   });
 
-  const scheduler = createScheduler({ db: database, logger: bootstrapLogger });
+  const telemetry = createTelemetry({ db: database });
+  const scheduler = createScheduler({ db: database, logger: bootstrapLogger, telemetry });
   activeScheduler = scheduler;
 
   // tick の開始は ready 後（配達先の Discord API が使える状態になってから）
@@ -122,6 +124,7 @@ async function main() {
     eventRouter
   });
   activeClient = client;
+  client.telemetry = telemetry;
 
   const manifests = discoverPluginManifests(path.resolve(__dirname, 'plugins'));
   const enabledManifests = sortByDependencies(
@@ -138,6 +141,7 @@ async function main() {
     scheduler
   });
   assertPluginIntentsCovered(client, enabledManifests);
+  client.loadedPlugins = activePluginRuntime.loaded;
   eventRouter.attach(client);
   bootstrapLogger.info('Plugins loaded', {
     discovered: manifests.map((manifest) => manifest.name),

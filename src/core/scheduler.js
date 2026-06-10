@@ -139,7 +139,7 @@ function ensureSchema(sqlite) {
   `);
 }
 
-function createScheduler({ db, logger }) {
+function createScheduler({ db, logger, telemetry = null }) {
   const sqlite = db.sqlite;
   ensureSchema(sqlite);
 
@@ -258,6 +258,7 @@ function createScheduler({ db, logger }) {
     }
 
     statements.markStatus.run('running', now, null, job.id);
+    telemetry?.increment('job', `${job.plugin}:${job.type}`);
 
     let error = null;
 

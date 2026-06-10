@@ -242,6 +242,7 @@ function loadPlugins({ manifests, client, db, config, logger, services = {}, eve
             return false;
           }
 
+          interaction.client?.telemetry?.increment('component', route.entry.prefix);
           const handled = await route.entry.handle(interaction, route.ctx);
           // prefix が一致した時点でこのプラグインの所有。明示 false 以外は停止する
           return handled !== false;

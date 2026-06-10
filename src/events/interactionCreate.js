@@ -30,6 +30,8 @@ module.exports = {
       return;
     }
 
+    interaction.client.telemetry?.increment('command', interaction.commandName);
+
     try {
       interaction.client.logger.info('Command execution started', {
         interactionId: interaction.id,
