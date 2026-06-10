@@ -23,6 +23,25 @@
     },
     "archive-search": { "enabled": true },
     "decision-log": { "enabled": true, "portalChannelId": "YOUR_DECISIONS_CHANNEL_ID" },
+    "news-digest": {
+      "enabled": true,
+      "categories": {
+        "テック": {
+          "channelId": "YOUR_TECH_NEWS_CHANNEL_ID",
+          "feeds": [
+            { "name": "Hacker News", "url": "https://news.ycombinator.com/rss" },
+            { "name": "Publickey", "url": "https://www.publickey1.jp/atom.xml" }
+          ]
+        },
+        "AI": {
+          "channelId": "YOUR_AI_NEWS_CHANNEL_ID",
+          "feeds": [
+            { "name": "r/LocalLLaMA", "url": "https://www.reddit.com/r/LocalLLaMA/.rss" }
+          ]
+        }
+      },
+      "digestCron": "0 8 * * 1-5"
+    },
     "muse-gacha": {
       "enabled": true,
       "pools": {
