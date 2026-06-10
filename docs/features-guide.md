@@ -285,6 +285,16 @@ bot が保存している全メッセージのアーカイブを横断検索し�
 
 ## 9. 管理者向けメモ
 
+### バックアップ（backup — 既定で有効）
+
+- 毎日 4:00 に DB のスナップショットを `data/backups/` へ自動取得し、最新14世代を保持します
+  （bot は無停止。`plugins.backup.cron` / `keep` で変更可）
+- `/backup now` 今すぐ取得 ／ `/backup status` 世代一覧 ／
+  `/backup export` 決定事項ログを markdown へ書き出し（`data/exports/`）
+- **復元手順**: bot を停止 → `data/otaku-assistant.db` をバックアップで差し替え → 起動
+- 注意: バックアップは**同じサーバー内**に置かれます。マシン障害に備えるには
+  `data/backups/` を rsync 等で外部へ退避する cron を別途組んでください
+
 ### スケジューラ（基盤）
 
 リマインダー等の時間駆動機能は共通のスケジューラで動いています。
