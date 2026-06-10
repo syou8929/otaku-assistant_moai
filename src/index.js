@@ -7,6 +7,7 @@ const { createDatabase } = require('./db/database');
 const { createLogger } = require('./services/logger');
 const { notifyOpsChannel } = require('./core/ops/notify');
 const { createEventRouter } = require('./core/eventRouter');
+const { createScheduler } = require('./core/scheduler');
 const {
   discoverPluginManifests,
   resolveEnabledManifests,
@@ -18,6 +19,7 @@ const {
 const bootstrapLogger = createLogger('app');
 let activeClient = null;
 let activePluginRuntime = null;
+let activeScheduler = null;
 let shuttingDown = false;
 
 // ハンドラ失敗の ops 通知は handler 単位で 10 分に 1 回へ抑制する
@@ -75,6 +77,7 @@ async function shutdown(signal, exitCode = 0) {
     ].join('\n'));
   }
 
+  activeScheduler?.stop();
   activePluginRuntime?.teardown();
 
   try {
@@ -99,6 +102,19 @@ async function main() {
     onError: notifyHandlerError
   });
 
+  const scheduler = createScheduler({ db: database, logger: bootstrapLogger });
+  activeScheduler = scheduler;
+
+  // tick の開始は ready 後（配達先の Discord API が使える状態になってから）
+  eventRouter.register('clientReady', {
+    name: 'core:scheduler-start',
+    priority: 20,
+    once: true,
+    handle: () => {
+      scheduler.start();
+    }
+  });
+
   const client = createBotClient({
     appConfig,
     database,
@@ -118,7 +134,8 @@ async function main() {
     db: database,
     config: appConfig,
     logger: bootstrapLogger,
-    eventRouter
+    eventRouter,
+    scheduler
   });
   assertPluginIntentsCovered(client, enabledManifests);
   eventRouter.attach(client);

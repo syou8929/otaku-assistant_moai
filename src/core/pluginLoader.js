@@ -75,6 +75,32 @@ function validateManifest(manifest, folderName) {
     }
   }
 
+  if (manifest.jobs !== undefined) {
+    if (typeof manifest.jobs !== 'object' || Array.isArray(manifest.jobs)) {
+      throw new Error(`Plugin "${manifest.name}": jobs must be an object keyed by job type`);
+    }
+
+    for (const [jobType, handle] of Object.entries(manifest.jobs)) {
+      if (typeof handle !== 'function') {
+        throw new Error(`Plugin "${manifest.name}": jobs.${jobType} must be a function`);
+      }
+    }
+  }
+
+  if (manifest.components !== undefined) {
+    const entries = Array.isArray(manifest.components) ? manifest.components : [manifest.components];
+
+    for (const entry of entries) {
+      if (!entry?.prefix || typeof entry.prefix !== 'string' || entry.prefix.includes(':')) {
+        throw new Error(`Plugin "${manifest.name}": each components entry needs a prefix without ':'`);
+      }
+
+      if (typeof entry.handle !== 'function') {
+        throw new Error(`Plugin "${manifest.name}": components.${entry.prefix} needs a handle function`);
+      }
+    }
+  }
+
   for (const hookName of ['init', 'teardown', 'migrations', 'repository']) {
     if (manifest[hookName] !== undefined && typeof manifest[hookName] !== 'function') {
       throw new Error(`Plugin "${manifest.name}": ${hookName} must be a function`);
@@ -180,8 +206,49 @@ function sortByDependencies(enabledManifests) {
  * - init(ctx) を依存順に実行
  * 返り値の teardown() は逆順で teardown(ctx) を呼ぶ。
  */
-function loadPlugins({ manifests, client, db, config, logger, services = {}, eventRouter }) {
+// customId の先頭セグメント（"<prefix>:..."）でコンポーネント interaction を
+// 所有プラグインへ routing する。registry は loadPlugins 呼び出し単位。
+const COMPONENT_ROUTER_PRIORITY = 80;
+
+function loadPlugins({ manifests, client, db, config, logger, services = {}, eventRouter, scheduler }) {
   const loadedEntries = [];
+  const componentRegistry = new Map();
+  let componentRouterRegistered = false;
+
+  function registerComponentRoute(manifest, entry, ctx) {
+    if (componentRegistry.has(entry.prefix)) {
+      throw new Error(
+        `Plugin "${manifest.name}" component prefix "${entry.prefix}" conflicts with an existing registration`
+      );
+    }
+
+    componentRegistry.set(entry.prefix, { manifest, entry, ctx });
+
+    if (!componentRouterRegistered) {
+      componentRouterRegistered = true;
+      eventRouter.register('interactionCreate', {
+        name: 'core:components',
+        priority: COMPONENT_ROUTER_PRIORITY,
+        handle: async (interaction) => {
+          const customId = interaction.customId;
+
+          if (!customId) {
+            return false;
+          }
+
+          const route = componentRegistry.get(customId.split(':')[0]);
+
+          if (!route) {
+            return false;
+          }
+
+          const handled = await route.entry.handle(interaction, route.ctx);
+          // prefix が一致した時点でこのプラグインの所有。明示 false 以外は停止する
+          return handled !== false;
+        }
+      });
+    }
+  }
 
   for (const manifest of manifests) {
     // api 未公開でも空オブジェクトを発行し、依存側の services[name] 参照を常に安全にする
@@ -201,7 +268,7 @@ function loadPlugins({ manifests, client, db, config, logger, services = {}, eve
       db[manifest.name] = manifest.repository(db.sqlite);
     }
 
-    const ctx = { client, db, config, logger, services };
+    const ctx = { client, db, config, logger, services, scheduler };
 
     for (const command of manifest.commands || []) {
       if (command.enabled === false) {
@@ -230,6 +297,22 @@ function loadPlugins({ manifests, client, db, config, logger, services = {}, eve
           handle: (...args) => item.handle(...args, ctx)
         });
       }
+    }
+
+    for (const entry of Array.isArray(manifest.components)
+      ? manifest.components
+      : manifest.components
+        ? [manifest.components]
+        : []) {
+      registerComponentRoute(manifest, entry, ctx);
+    }
+
+    if (manifest.jobs && !scheduler) {
+      throw new Error(`Plugin "${manifest.name}" declares jobs but no scheduler was provided`);
+    }
+
+    for (const [jobType, handle] of Object.entries(manifest.jobs || {})) {
+      scheduler.registerHandler(manifest.name, jobType, (payload, job) => handle(payload, ctx, job));
     }
 
     manifest.init?.(ctx);

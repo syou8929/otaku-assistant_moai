@@ -1,7 +1,8 @@
 module.exports = {
   async execute(interaction) {
-    if (!interaction.isChatInputCommand()) {
-      // コンポーネント操作は各プラグインが interactionCreate@<100 で登録処理する（spec §6）。
+    if (!interaction.isChatInputCommand() && !interaction.isContextMenuCommand()) {
+      // コンポーネント操作は各プラグインが interactionCreate@<100（core:components@80 等）で
+      // 登録処理する（spec §6）。
       return;
     }
 
