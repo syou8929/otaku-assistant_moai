@@ -9,6 +9,7 @@ function createRepository(sqlite) {
         updated_by = excluded.created_by, updated_at = excluded.created_at
     `),
     getByKey: sqlite.prepare('SELECT * FROM faq_entries WHERE key = ?'),
+    getById: sqlite.prepare('SELECT * FROM faq_entries WHERE id = ?'),
     all: sqlite.prepare('SELECT * FROM faq_entries ORDER BY use_count DESC, key ASC'),
     remove: sqlite.prepare('DELETE FROM faq_entries WHERE key = ?'),
     bumpUse: sqlite.prepare('UPDATE faq_entries SET use_count = use_count + 1 WHERE id = ?')
@@ -33,6 +34,9 @@ function createRepository(sqlite) {
     },
     getByKey(key) {
       return statements.getByKey.get(key) || null;
+    },
+    getById(id) {
+      return statements.getById.get(id) || null;
     },
     /** key・aliases の部分一致（完全一致を先頭に） */
     search(query, limit = 25) {

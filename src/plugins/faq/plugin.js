@@ -145,16 +145,27 @@ async function handleComponent(interaction, ctx) {
     return false;
   }
 
-  const entry = ctx.db.faq
-    .list(1000)
-    .find((row) => row.id === Number(id));
+  const entry = ctx.db.faq.getById(Number(id));
 
   if (!entry) {
     await interaction.reply({ content: 'この FAQ は削除されています。', flags: MessageFlags.Ephemeral });
     return true;
   }
 
-  await interaction.channel.send({
+  // ephemeral 起点では interaction.channel が null のことがある（閲覧権限なし等）
+  const targetChannel =
+    interaction.channel ||
+    (await interaction.client.channels.fetch(interaction.channelId).catch(() => null));
+
+  if (!targetChannel?.isTextBased?.()) {
+    await interaction.reply({
+      content: 'このチャンネルへは共有できません（bot がチャンネルを参照できません）。',
+      flags: MessageFlags.Ephemeral
+    });
+    return true;
+  }
+
+  await targetChannel.send({
     content: `💡 **${entry.key}**\n${entry.content}\n-# /faq で引けます（共有: <@${interaction.user.id}>）`,
     allowedMentions: { parse: [] }
   });
