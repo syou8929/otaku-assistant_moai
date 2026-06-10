@@ -22,7 +22,16 @@
       "sources": ["YOUR_PUBLIC_CHANNEL_OR_CATEGORY_ID"]
     },
     "archive-search": { "enabled": true },
-    "decision-log": { "enabled": true, "portalChannelId": "YOUR_DECISIONS_CHANNEL_ID" }
+    "decision-log": { "enabled": true, "portalChannelId": "YOUR_DECISIONS_CHANNEL_ID" },
+    "muse-gacha": {
+      "enabled": true,
+      "pools": {
+        "MV": ["YOUTUBE_CHANNEL_ID_1"],
+        "モーショングラフィックス": ["YOUTUBE_CHANNEL_ID_2"]
+      },
+      "deliveryChannelId": "YOUR_INSPO_CHANNEL_ID",
+      "deliveryCron": "0 9 * * 1-5"
+    }
   },
   "entranceChannelId": "YOUR_ENTRANCE_CHANNEL_ID",
   "timelineChannelId": "YOUR_TIMELINE_CHANNEL_ID",
