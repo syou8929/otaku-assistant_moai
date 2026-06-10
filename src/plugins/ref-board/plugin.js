@@ -69,13 +69,19 @@ async function refreshBoardCard(ctx, boardId) {
     const existing = await channel.messages.fetch(board.card_message_id).catch(() => null);
 
     if (existing) {
-      await existing.edit(payload);
+      await existing.edit(payload).catch(() => null);
       return;
     }
   }
 
-  const sent = await channel.send(payload);
-  repo.setCardMessageId(board.id, sent.id);
+  const sent = await channel.send(payload).catch((error) => {
+    ctx.logger.warn('ref-board: board card send failed', { boardId: board.id, error: error.message });
+    return null;
+  });
+
+  if (sent) {
+    repo.setCardMessageId(board.id, sent.id);
+  }
 }
 
 async function saveMessageToBoard(ctx, interaction, boardId, channelId, messageId) {

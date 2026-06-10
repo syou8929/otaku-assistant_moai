@@ -37,7 +37,7 @@ function exportDir() {
 function timestamp() {
   const now = new Date();
   const pad = (n) => String(n).padStart(2, '0');
-  return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`;
+  return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
 }
 
 async function runBackup(ctx) {
@@ -141,8 +141,8 @@ const backupCommand = {
         : [];
       const lines = backups.length
         ? backups.map((name) => {
-            const size = fs.statSync(path.join(directory, name)).size;
-            return `・${name}（${(size / 1024 / 1024).toFixed(1)}MB）`;
+            const stat = fs.statSync(path.join(directory, name), { throwIfNoEntry: false });
+            return `・${name}（${stat ? (stat.size / 1024 / 1024).toFixed(1) : '?'}MB）`;
           })
         : ['バックアップはまだありません。'];
       await interaction.editReply(['💾 バックアップ世代:', ...lines].join('\n'));

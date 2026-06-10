@@ -156,6 +156,8 @@ function snooze(ctx, reminder, untilSpec) {
     runAt = new Date(Date.now() + minutes * 60_000);
   }
 
+  runAt = deferUntilQuietEnd(ctx.config, runAt); // スヌーズ先が静音時間帯なら静音明けへ
+
   ctx.db.reminder.setRunAt(reminder.id, runAt);
   ctx.scheduler.schedule({
     plugin: 'reminder',

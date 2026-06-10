@@ -95,7 +95,7 @@ async function deliverDigests(ctx) {
       continue;
     }
 
-    const candidates = repo.digestCandidates(category).slice(0, settings.itemsPerCategory);
+    const candidates = repo.digestCandidates(category, { limit: settings.itemsPerCategory });
 
     if (candidates.length === 0) {
       continue;

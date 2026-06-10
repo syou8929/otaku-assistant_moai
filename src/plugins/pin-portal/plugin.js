@@ -47,8 +47,25 @@ function buildPortalCard(channel, message) {
   };
 }
 
+// チャンネル単位の直列化（連続ピンイベントの並行 reconcile が重複カードを生むのを防ぐ）
+const reconcileLocks = new Map();
+
 /** ピン一覧スナップショットと DB を突合し、増分をポータルへ・減分をポータルから反映する */
 async function reconcileChannelPins(ctx, channel) {
+  const previous = reconcileLocks.get(channel.id) || Promise.resolve();
+  const run = previous.catch(() => {}).then(() => reconcileChannelPinsInner(ctx, channel));
+  reconcileLocks.set(channel.id, run);
+
+  try {
+    return await run;
+  } finally {
+    if (reconcileLocks.get(channel.id) === run) {
+      reconcileLocks.delete(channel.id);
+    }
+  }
+}
+
+async function reconcileChannelPinsInner(ctx, channel) {
   const settings = getSettings(ctx);
 
   if (!settings.portalChannelId || !isSourceAllowed(channel, settings.sources)) {

@@ -11,11 +11,14 @@ const MAX_RESULTS = 10;
  * api: ctx.services['archive-search'].search(query, opts) を digest/helpdesk が再利用。
  */
 
-function canViewChannel(interaction, channelId) {
-  const channel = interaction.guild?.channels?.cache?.get(channelId);
+function canViewChannel(interaction, row) {
+  // アーカイブ済みスレッドは cache に居ないため、親チャンネルの権限へフォールバック
+  const channel =
+    interaction.guild?.channels?.cache?.get(row.channelId) ||
+    (row.parentId ? interaction.guild?.channels?.cache?.get(row.parentId) : null);
 
   if (!channel) {
-    return false; // 取得不能なチャンネルは出さない（安全側）
+    return false; // どちらも取得不能なら出さない（安全側）
   }
 
   const perms = channel.permissionsFor(interaction.member);
@@ -78,7 +81,7 @@ const searchCommand = {
     });
 
     const visibleRows = raw.rows
-      .filter((row) => canViewChannel(interaction, row.channelId))
+      .filter((row) => canViewChannel(interaction, row))
       .slice(0, MAX_RESULTS);
 
     await interaction.editReply(

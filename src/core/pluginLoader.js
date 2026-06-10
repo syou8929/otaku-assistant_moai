@@ -243,9 +243,27 @@ function loadPlugins({ manifests, client, db, config, logger, services = {}, eve
           }
 
           interaction.client?.telemetry?.increment('component', route.entry.prefix);
-          const handled = await route.entry.handle(interaction, route.ctx);
-          // prefix が一致した時点でこのプラグインの所有。明示 false 以外は停止する
-          return handled !== false;
+
+          try {
+            const handled = await route.entry.handle(interaction, route.ctx);
+            // prefix が一致した時点でこのプラグインの所有。明示 false 以外は停止する
+            return handled !== false;
+          } catch (error) {
+            // ハンドラ例外でも interaction を未応答のまま放置しない（"インタラクションに失敗" 防止）
+            logger.error(`Component handler failed for prefix "${route.entry.prefix}"`, {
+              customId,
+              error: error.message,
+              stack: error.stack
+            });
+
+            if (!interaction.replied && !interaction.deferred && typeof interaction.reply === 'function') {
+              await interaction
+                .reply({ content: 'エラーが発生しました。時間をおいて再試行してください。', flags: 64 })
+                .catch(() => null);
+            }
+
+            return true;
+          }
         }
       });
     }

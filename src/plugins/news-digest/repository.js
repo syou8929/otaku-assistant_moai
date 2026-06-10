@@ -9,12 +9,12 @@ function createRepository(sqlite) {
         (url_key, category, source_name, url, title, title_key, published_at, first_seen_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `),
-    bumpCoOccurrence: sqlite.prepare(`
-      UPDATE news_items SET source_count = source_count + 1
-      WHERE title_key = ? AND source_name != ? AND delivered_at IS NULL
-    `),
-    hasSameStoryOtherSource: sqlite.prepare(`
-      SELECT 1 FROM news_items WHERE title_key = ? AND source_name != ? LIMIT 1
+    recountSources: sqlite.prepare(`
+      UPDATE news_items SET source_count = (
+        SELECT COUNT(DISTINCT n2.source_name) FROM news_items n2
+        WHERE n2.title_key = news_items.title_key
+      )
+      WHERE title_key = ?
     `),
     digestCandidates: sqlite.prepare(`
       SELECT * FROM news_items
@@ -41,10 +41,9 @@ function createRepository(sqlite) {
         return false;
       }
 
-      // 別ソースが同じ話題を報じていたら相互に Hot 加点
-      if (statements.hasSameStoryOtherSource.get(titleKey, sourceName)) {
-        statements.bumpCoOccurrence.run(titleKey, '');
-      }
+      // 同一話題（title_key）の source_count をユニークソース数で再計算
+      // （増分更新は経路によりドリフトするため毎回再集計 — 件数は小さい）
+      statements.recountSources.run(titleKey);
 
       return true;
     },

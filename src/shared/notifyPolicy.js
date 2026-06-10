@@ -33,7 +33,11 @@ function getQuietHours(config) {
   }
 
   const start = parseClock(raw.start);
-  const end = parseClock(raw.end);
+  let end = parseClock(raw.end);
+
+  if (end === 0) {
+    end = 24 * 60; // "00:00" 終了は深夜0時＝その日の終わりとして扱う
+  }
 
   if (start === null || end === null || start === end) {
     return null;

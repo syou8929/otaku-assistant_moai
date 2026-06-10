@@ -18,7 +18,8 @@ function decodeXmlEntities(text) {
 
 /** RSS XML 文字列 → entry 配列（videoId / title / publishedAt / channelTitle） */
 function parseFeed(xml) {
-  const channelTitleMatch = String(xml).match(/<title>([^<]*)<\/title>/);
+  const preamble = String(xml).split(/<entry[\s>]/)[0];
+  const channelTitleMatch = preamble.match(/<title>([^<]*)<\/title>/);
   const channelTitle = channelTitleMatch ? decodeXmlEntities(channelTitleMatch[1]) : null;
   const entries = [];
   const entryPattern = /<entry>([\s\S]*?)<\/entry>/g;

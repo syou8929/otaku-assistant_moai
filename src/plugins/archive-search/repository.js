@@ -10,7 +10,7 @@ function escapeLike(text) {
 function createRepository(sqlite) {
   const statements = {
     fts: sqlite.prepare(`
-      SELECT a.message_id AS messageId, a.guild_id AS guildId, a.channel_id AS channelId,
+      SELECT a.message_id AS messageId, a.guild_id AS guildId, a.channel_id AS channelId, a.parent_id AS parentId,
              a.author_id AS authorId, a.author_name AS authorName, a.clean_content AS content,
              a.created_at AS createdAt
       FROM archive_fts f
@@ -22,7 +22,7 @@ function createRepository(sqlite) {
       LIMIT ?
     `),
     like: sqlite.prepare(`
-      SELECT message_id AS messageId, guild_id AS guildId, channel_id AS channelId,
+      SELECT message_id AS messageId, guild_id AS guildId, channel_id AS channelId, parent_id AS parentId,
              author_id AS authorId, author_name AS authorName, clean_content AS content,
              created_at AS createdAt
       FROM archived_messages
