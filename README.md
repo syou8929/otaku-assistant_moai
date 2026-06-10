@@ -401,6 +401,12 @@ Only run `npm run register-commands` when command definitions changed or after i
 - VC status text does not show: discord.js/API support may not expose the status field in your runtime. Check `vc profile status text resolved` logs.
 - Native modules fail during install: `better-sqlite3` may require a working Node build toolchain on some platforms.
 
+## Feature Guide (日本語)
+
+新機能（reminder / pin-portal / timeline-barrier / archive-search / decision-log ほか）の
+利用者向け説明書は [docs/features-guide.md](docs/features-guide.md) にあります。
+機能の有効化（loadout）・コマンド一覧・管理者向けトラブルシュートを含みます。
+
 ## Architecture (flat base + detachable plugins)
 
 The codebase is organized in three layers (design spec:
